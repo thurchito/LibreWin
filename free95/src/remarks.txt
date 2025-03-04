@@ -1,0 +1,6 @@
+Remarks
+
+Kap Petrov:
+    I'd say this version's mouse polling system is buggy, it can fuck up from the keyboard, and because
+    of the polling nature, processes will not run unless mouse is being actively moved. In cavemen terms,
+    this version is fucking retarded.
