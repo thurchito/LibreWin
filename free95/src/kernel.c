@@ -487,197 +487,32 @@ const UINT8 font_8x16[] = {
 
 };
 
+VOID PutChar(CHAR ch, UINT32 x_coord, UINT32 y_coord, UINT32 color) {
+    UINT32 index = 0;
 
-VOID PutChar(CHAR ch, UINT32 x_coord, UINT32 y_coord, UINT32 color)
-{
-    // ASCII offset for the font array (assuming font starts at 'A')
-
-    UINT32 index;
-
-    if (ch == ' ')
-    {
-        index = 26 * 16;
-    }
-    else if (ch == '!')
-    {
-        index = 27 * 16;
-    }
-    else if (ch == '(')
-    {
-        index = 28 * 16;
-    }
-    else if (ch == ')')
-    {
-        index = 29 * 16;
-    }
-    else if (ch == '1')
-    {
-        index = 30 * 16;
-    }
-    else if (ch == '.')
-    {
-        index = 31 * 16;
-    }
-    else if (ch == '0')
-    {
-        index = 32 * 16;
-    }
-    else if (ch == '2')
-    {
-        index = 33 * 16;
-    }
-    else if (ch == '3')
-    {
-        index = 34 * 16;
-    }
-    else if (ch == '4')
-    {
-        index = 35 * 16;
-    }
-    else if (ch == '5')
-    {
-        index = 36 * 16;
-    }
-    else if (ch == '6')
-    {
-        index = 37 * 16;
-    }
-    else if (ch == '7')
-    {
-        index = 38 * 16;
-    }
-    else if (ch == '8')
-    {
-        index = 39 * 16;
-    }
-    else if (ch == '9')
-    {
-        index = 40 * 16;
-    }
-    else if (ch == ',')
-    {
-        index = 41 * 16;
-    }
-    else if (ch == ':')
-    {
-        index = 42 * 16;
-    }
-    else if (ch == 'a')
-    {
-        index = 43 * 16;
-    }
-    else if (ch == 'b')
-    {
-        index = 44 * 16;
-    }
-    else if (ch == 'c')
-    {
-        index = 45 * 16;
-    }
-    else if (ch == 'd')
-    {
-        index = 46 * 16;
-    }
-    else if (ch == 'e')
-    {
-        index = 47 * 16;
-    }
-    else if (ch == 'f')
-    {
-        index = 48 * 16;
-    }
-    else if (ch == 'g')
-    {
-        index = 49 * 16;
-    }
-    else if (ch == 'h')
-    {
-        index = 50 * 16;
-    }
-    else if (ch == 'i')
-    {
-        index = 51 * 16;
-    }
-    else if (ch == 'j')
-    {
-        index = 52 * 16;
-    }
-    else if (ch == 'k')
-    {
-        index = 53 * 16;
-    }
-    else if (ch == 'l')
-    {
-        index = 54 * 16;
-    }
-    else if (ch == 'm')
-    {
-        index = 55 * 16;
-    }
-    else if (ch == 'n')
-    {
-        index = 56 * 16;
-    }
-    else if (ch == 'o')
-    {
-        index = 57 * 16;
-    }
-    else if (ch == 'p')
-    {
-        index = 58 * 16;
-    }
-    else if (ch == 'q')
-    {
-        index = 59 * 16;
-    }
-    else if (ch == 'r')
-    {
-        index = 60 * 16;
-    }
-    else if (ch == 's')
-    {
-        index = 61 * 16;
-    }
-    else if (ch == 't')
-    {
-        index = 62 * 16;
-    }
-    else if (ch == 'u')
-    {
-        index = 63 * 16;
-    }
-    else if (ch == 'v')
-    {
-        index = 64 * 16;
-    }
-    else if (ch == 'w')
-    {
-        index = 65 * 16;
-    }
-    else if (ch == 'x')
-    {
-        index = 66 * 16;
-    }
-    else if (ch == 'y')
-    {
-        index = 67 * 16;
-    }
-    else if (ch == 'z')
-    {
-        index = 68 * 16;
-    }
-    else
-    {
+    if (ch >= 'A' && ch <= 'Z') {
         index = (ch - 'A') * 16;
+    } else if (ch >= 'a' && ch <= 'z') {
+        index = (ch - 'a' + 43) * 16;
+    } else if (ch >= '0' && ch <= '9') {
+        index = (ch - '0' + 32) * 16;
+    } else {
+        switch (ch) {
+            case ' ': index = 26 * 16; break;
+            case '!': index = 27 * 16; break;
+            case '(': index = 28 * 16; break;
+            case ')': index = 29 * 16; break;
+            case '.': index = 31 * 16; break;
+            case ',': index = 41 * 16; break;
+            case ':': index = 42 * 16; break;
+            default: return;
+        }
     }
 
-    // Iterate through each row of the 8x16 character
     for (UINT32 row = 0; row < 16; row++) {
-        UINT8 data = font_8x16[index + row]; // Get the row data
-
-        // Draw each pixel in the row
+        UINT8 data = font_8x16[index + row];
         for (UINT32 col = 0; col < 8; col++) {
-            if (data & (0x80 >> col)) { // Check if the bit is set
+            if (data & (0x80 >> col)) {
                 PutPixel(x_coord + col, y_coord + row, color);
             }
         }
