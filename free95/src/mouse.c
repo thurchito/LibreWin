@@ -29,7 +29,7 @@ int mGetY() {
 }
 
 void mouse_wait(bool type) {
-    uint32 time_out = 100000;
+    uint32_t time_out = 100000;
     if (type == false) {
         // suspend until status is 1
         while (time_out--) {
@@ -47,7 +47,7 @@ void mouse_wait(bool type) {
     }
 }
 
-void mouse_write(uint8 data) {
+void mouse_write(uint8_t data) {
     // sending write command
     mouse_wait(true);
     outb(PS2_CMD_PORT, 0xD4);
@@ -56,12 +56,12 @@ void mouse_write(uint8 data) {
     outb(MOUSE_DATA_PORT, data);
 }
 
-uint8 mouse_read() {
+uint8_t mouse_read() {
     mouse_wait(false);
     return inb(MOUSE_DATA_PORT);
 }
 
-void get_mouse_status(char status_byte, MOUSE_STATUS *status) {
+void get_mouse_status(uint8_t status_byte, MOUSE_STATUS *status) {
     memset(status, 0, sizeof(MOUSE_STATUS));
     if (status_byte & 0x01)
         status->left_button = 1;
@@ -87,13 +87,17 @@ void print_mouse_info()
 }
 
 void mouse_handler() {
-    static uint8 mouse_cycle = 0;
-    static char mouse_byte[3];
+    static uint8_t mouse_cycle = 0;
+    static uint8_t mouse_byte[3];
 
     switch (mouse_cycle) {
         case 0:
             mouse_byte[0] = mouse_read();
             get_mouse_status(mouse_byte[0], &g_status);
+            if (!g_status.always_1) {
+                mouse_cycle = 0; // Reset even if data is invalid
+                return;  // Ignore invalid data
+            }
             mouse_cycle++;
             break;
         case 1:
@@ -102,17 +106,28 @@ void mouse_handler() {
             break;
         case 2:
             mouse_byte[2] = mouse_read();
-            g_mouse_x_pos = g_mouse_x_pos + mouse_byte[1];
-            g_mouse_y_pos = g_mouse_y_pos - mouse_byte[2];
+            if (g_status.x_overflow || g_status.y_overflow) {
+                mouse_cycle = 0; // Reset even if we discard this update
+                return;  // Discard this update due to overflow
+            }
 
-            if (g_mouse_x_pos < 0)
+            int8_t dx = (int8_t)mouse_byte[1];  // X movement
+            int8_t dy = (int8_t)mouse_byte[2];  // Y movement
+
+            // Ensure movement is within valid bounds before applying it
+            if (g_mouse_x_pos + dx < 0) 
                 g_mouse_x_pos = 0;
-            if (g_mouse_y_pos < 0)
+            else if (g_mouse_x_pos + dx > SCREEN_WIDTH - 1) 
+                g_mouse_x_pos = SCREEN_WIDTH - 1;
+            else 
+                g_mouse_x_pos += dx;
+
+            if (g_mouse_y_pos + dy < 0)
                 g_mouse_y_pos = 0;
-            if (g_mouse_x_pos > 640)
-                g_mouse_x_pos = 640 - 1;
-            if (g_mouse_y_pos > 480)
-                g_mouse_y_pos = 480 - 1;
+            else if (g_mouse_y_pos + dy > SCREEN_HEIGHT - 1) 
+                g_mouse_y_pos = SCREEN_HEIGHT - 1;
+            else 
+                g_mouse_y_pos += dy;
 
             mouse_cycle = 0;
             break;
@@ -122,14 +137,16 @@ void mouse_handler() {
 /**
  * available rates 10, 20, 40, 60, 80, 100, 200
  */
-void set_mouse_rate(uint8 rate) {
-    uint8 status;
+void set_mouse_rate(uint8_t rate) {
+    uint8_t status;
 
+    mouse_wait(true);
     outb(MOUSE_DATA_PORT, MOUSE_CMD_SAMPLE_RATE);
     status = mouse_read();
     if(status != MOUSE_ACKNOWLEDGE) {
         return;
     }
+    mouse_wait(true);
     outb(MOUSE_DATA_PORT, rate);
     status = mouse_read();
     if(status != MOUSE_ACKNOWLEDGE) {
@@ -138,7 +155,7 @@ void set_mouse_rate(uint8 rate) {
 }
 
 void mouse_init() {
-    uint8 status;
+    uint8_t status;
 
     g_mouse_x_pos = 5;
     g_mouse_y_pos = 2;
@@ -150,6 +167,9 @@ void mouse_init() {
     // print mouse id
     outb(MOUSE_DATA_PORT, MOUSE_CMD_MOUSE_ID);
     status = mouse_read();
+    if (status != 0x00) {
+        return;  // Abort initialization if mouse ID is not 0x00 (standard PS/2 mouse)
+    }
 
     set_mouse_rate(10);
 

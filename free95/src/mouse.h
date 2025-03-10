@@ -1,11 +1,10 @@
-#ifndef KEYBOARD_H
-#define KEYBOARD_H
+#ifndef MOUSE_H
+#define MOUSE_H
 #include <stddef.h>
+#include <stdint.h>
 
-typedef uint32_t uint32;
-typedef uint16_t uint16;
-typedef uint8_t uint8;
-
+#define SCREEN_WIDTH  640
+#define SCREEN_HEIGHT 480
 #define MOUSE_CMD_RESET     0xFF
 #define MOUSE_CMD_RESEND     0xFE
 #define MOUSE_CMD_SET_DEFAULTS     0xF6
@@ -23,16 +22,20 @@ typedef uint8_t uint8;
 #define MOUSE_DATA_PORT     0x60    // PS/2 data port register see https://wiki.osdev.org/%228042%22_PS/2_Controller
 
 typedef struct {
-    uint8 left_button: 1;
-    uint8 right_button: 1;
-    uint8 middle_button: 1;
-    uint8 always_1: 1;
-    uint8 x_sign: 1;
-    uint8 y_sign: 1;
-    uint8 x_overflow: 1;
-    uint8 y_overflow: 1;
+    uint8_t left_button: 1;
+    uint8_t right_button: 1;
+    uint8_t middle_button: 1;
+    uint8_t always_1: 1;
+    uint8_t x_sign: 1;
+    uint8_t y_sign: 1;
+    uint8_t x_overflow: 1;
+    uint8_t y_overflow: 1;
 } MOUSE_STATUS;
 
 void mouse_init();
+int mouse_getlc();
+int mouse_getrc();
+int mGetX();
+int mGetY();
 
 #endif
