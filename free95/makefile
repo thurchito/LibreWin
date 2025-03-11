@@ -1,6 +1,6 @@
 # Licensed under GNU GPL 3.0
-CC  := clang
-CXX := clang++
+CC  := gcc
+CXX := g++
 
 # x86/32 = x86
 # x86/64 = x64
@@ -8,7 +8,9 @@ CXX := clang++
 # arm/64 = aarch64
 PLATFORM ?= x86/32
 
-SRC := ./src
+SRC   := ./src
+BIN   := ./build/bin
+OBJ   := ./build/free95/obj
 
 LDFLAGS := -T ./res/linker.ld -nostdlib
 
@@ -18,24 +20,28 @@ ifeq ($(word 2,$(subst /, ,$(PLATFORM))),32)
 endif
 endif
 
-SOURCES = 
+SOURCES := $(wildcard $(SRC)/**.c)
+ASMSRC  := $(wildcard $(SRC)/**.s)
+ASMOBJ  := $(patsubst %.s,$(OBJ)/%.s.o,$(ASMSRC))
+COBJ    := $(patsubst %.c,$(OBJ)/%.c.o,$(SOURCES))
 CFLAGS= -m32 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -fno-exceptions
 ASFLAGS=-felf32
 
-all: $(SOURCES) link run
+all: $(COBJ) $(ASMOBJ) link run
 
 link:
-	ld $(LDFLAGS) -o nxoskrnl.nef $(SOURCES)
+	ld $(LDFLAGS) -o $(BIN)/nxoskrnl.nef $(SOURCES)
 
-.s.o:
-	nasm $(ASFLAGS) $< 
+$(OBJ)/**.s.o: $(SRC)/**.s
+	mkdir -p $(dir $<)
+	nasm $(ASFLAGS) $< -o $@
 
-.c.o:
-	gcc -c $(CFLAGS) $< -o $@
+$(OBJ)/**.c.o: $(SRC)/**.C
+	mkdir -p $(dir $<)
+	$(CC) -c $(CFLAGS) $< -o $@
 
 run:
-	qemu-system-i386 -kernel nxoskrnl.nef
+	qemu-system-i386 -kernel $(BIN)/nxoskrnl.nef
 
 clean:
-	rm *.o
-	rm *.nef
+	rm -rf ./build/*
