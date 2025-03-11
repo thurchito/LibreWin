@@ -1,0 +1,47 @@
+# Licensed under GNU GPL 3.0
+CC  := gcc
+CXX := g++
+
+# x86/32 = x86
+# x86/64 = x64
+# arm/32 = arm
+# arm/64 = aarch64
+PLATFORM ?= x86/32
+
+SRC   := ./src
+BIN   := ./build/bin
+OBJ   := ./build/free95/obj
+
+LDFLAGS := -T ./res/linker.ld -nostdlib
+
+ifeq ($(word 1,$(subst /, ,$(PLATFORM))),x86)
+ifeq ($(word 2,$(subst /, ,$(PLATFORM))),32)
+	LDFLAGS += -m elf_i386
+endif
+endif
+
+SOURCES := $(wildcard $(SRC)/**.c)
+ASMSRC  := $(wildcard $(SRC)/**.s)
+ASMOBJ  := $(patsubst %.s,$(OBJ)/%.s.o,$(ASMSRC))
+COBJ    := $(patsubst %.c,$(OBJ)/%.c.o,$(SOURCES))
+CFLAGS= -m32 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -fno-exceptions
+ASFLAGS=-felf32
+
+all: $(COBJ) $(ASMOBJ) link run
+
+link:
+	ld $(LDFLAGS) -o $(BIN)/nxoskrnl.nef $(SOURCES)
+
+$(OBJ)/**.s.o: $(SRC)/**.s
+	mkdir -p $(dir $<)
+	nasm $(ASFLAGS) $< -o $@
+
+$(OBJ)/**.c.o: $(SRC)/**.C
+	mkdir -p $(dir $<)
+	$(CC) -c $(CFLAGS) $< -o $@
+
+run:
+	qemu-system-i386 -kernel $(BIN)/nxoskrnl.nef
+
+clean:
+	rm -rf ./build/*
