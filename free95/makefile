@@ -33,11 +33,11 @@ link:
 	mkdir -p $(BIN)
 	ld $(LDFLAGS) -o $(BIN)/nxoskrnl.nef $(ASMOBJ) $(COBJ)
 
-$(OBJ)/%.s.o: $(SRC)/*.asm $(SRC)/*.s $(SRC)/**/*.asm $(SRC)/**/*.s
+$(OBJ)/%.s.o: $(SRC)/%.asm $(SRC)/%.s
 	mkdir -p $(dir $@)
 	nasm $(ASFLAGS) src/$*.s -o $@
 
-$(OBJ)/%.c.o: $(SRC)/*.c $(SRC)/**/*.c
+$(OBJ)/%.c.o: $(SRC)/%.c
 	mkdir -p $(dir $@)
 	$(CC) -c $(CFLAGS) src/$*.c -o $@
 
