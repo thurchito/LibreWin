@@ -20,8 +20,8 @@ ifeq ($(word 2,$(subst /, ,$(PLATFORM))),32)
 endif
 endif
 
-SOURCES := $(wildcard $(SRC)/**.c)
-ASMSRC  := $(wildcard $(SRC)/**.s)
+SOURCES := $(wildcard $(SRC)/*.c) $(wildcard $(SRC)/**/*.c)
+ASMSRC  := $(wildcard $(SRC)/*.s) $(wildcard $(SRC)/*.asm) $(wildcard $(SRC)/**/*.s) $(wildcard $(SRC)/**/*.asm)
 ASMOBJ  := $(patsubst $(SRC)/%.s,$(OBJ)/%.s.o,$(ASMSRC))
 COBJ    := $(patsubst $(SRC)/%.c,$(OBJ)/%.c.o,$(SOURCES))
 CFLAGS= -m32 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -fno-exceptions -I$(SRC)
@@ -33,11 +33,11 @@ link:
 	mkdir -p $(BIN)
 	ld $(LDFLAGS) -o $(BIN)/nxoskrnl.nef $(ASMOBJ) $(COBJ)
 
-$(OBJ)/%.s.o: $(SRC)/**.s
+$(OBJ)/%.s.o: $(SRC)/*.asm $(SRC)/*.s $(SRC)/**/*.asm $(SRC)/**/*.s
 	mkdir -p $(dir $@)
 	nasm $(ASFLAGS) src/$*.s -o $@
 
-$(OBJ)/%.c.o: $(SRC)/**.c
+$(OBJ)/%.c.o: $(SRC)/*.c $(SRC)/**/*.c
 	mkdir -p $(dir $@)
 	$(CC) -c $(CFLAGS) src/$*.c -o $@
 
