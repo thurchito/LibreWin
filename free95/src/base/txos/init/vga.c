@@ -62,8 +62,7 @@ void terminal_writechar(char c, char colour)
         terminal_row += 1;
     }
 }
-void terminal_initialize()
-{
+void terminal_initialize() {
     video_mem = (uint16_t*)(0xB8000);
     terminal_row = 0;
     terminal_col = 0;
@@ -74,6 +73,16 @@ void terminal_initialize()
             terminal_putchar(x, y, ' ', 0);
         }
     }   
+}
+
+void clearscreen() {
+    for (int y = 0; y < VGA_HEIGHT; y++) {
+        for (int x = 0; x < VGA_WIDTH; x++) {
+            terminal_putchar(x, y, ' ', 0);
+        }
+    }
+    terminal_row = 0;
+    terminal_col = 0;
 }
 
 void FirstTimeBootInit()

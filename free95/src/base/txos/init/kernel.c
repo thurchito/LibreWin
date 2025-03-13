@@ -137,14 +137,11 @@ void kernel_main() {
 
 	int fd = fopen("0:/hello.txt", "r");
 
-	if (fd)
-	{
+	if (fd) {
 		DbgPrint("Opened hello.txt\n\r");
-	}
-	else
-	{
+	} else {
 		DbgPrint("Could not open hello.txt\n\r");
-	}
+    }
 
     while(1);
 }
