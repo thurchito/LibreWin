@@ -1,4 +1,4 @@
-FILES = ./build/kernel.asm.o ./build/kernel.o ./build/disk/disk.o ./build/disk/streamer.o ./build/fs/pparser.o ./build/idt/idt.asm.o ./build/idt/idt.o ./build/memory/memory.o ./build/io/io.asm.o ./build/memory/heap/heap.o ./build/memory/heap/kheap.o ./build/memory/paging/paging.o ./build/memory/paging/paging.asm.o ./build/string/string.o
+FILES = ./build/kernel.asm.o ./build/kernel.o ./build/disk/disk.o ./build/disk/streamer.o ./build/fs/pparser.o ./build/fs/file.o ./build/fs/fat/fat16.o ./build/idt/idt.asm.o ./build/idt/idt.o ./build/memory/memory.o ./build/io/io.asm.o ./build/memory/heap/heap.o ./build/memory/heap/kheap.o ./build/memory/paging/paging.o ./build/memory/paging/paging.asm.o ./build/string/string.o
 INCLUDES = -I./src
 FLAGS = -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
 
@@ -53,6 +53,12 @@ all: ./bin/boot.bin ./bin/kernel.bin
 
 ./build/disk/streamer.o:./base/txos/ke/disk/streamer.c
 	i686-elf-gcc $(INCLUDES) -I./base/txos/ke/disk $(FLAGS) -std=gnu99 -c ./base/txos/ke/disk/streamer.c -o ./build/disk/streamer.o
+
+./build/fs/fat/fat16.o: ./base/txos/ke/fs/fat/fat16.c
+	i686-elf-gcc $(INCLUDES) -I./base/txos/ke/fs -I./src/fat $(FLAGS) -std=gnu99 -c ./base/txos/ke/fs/fat/fat16.c -o ./build/fs/fat/fat16.o
+
+./build/fs/file.o: ./base/txos/ke/fs/file.c
+	i686-elf-gcc $(INCLUDES) -I./base/txos/ke/fs $(FLAGS) -std=gnu99 -c ./base/txos/ke/fs/file.c -o ./build/fs/file.o
 
 ./build/fs/pparser.o: ./base/txos/ke/fs/pparser.c
 	i686-elf-gcc $(INCLUDES) -I./base/txos/ke/fs $(FLAGS) -std=gnu99 -c ./base/txos/ke/fs/pparser.c -o ./build/fs/pparser.o

@@ -1,6 +1,8 @@
 #ifndef DISK_H
 #define DISK_H
 
+#include "../fs/file.h"
+
 typedef unsigned int FREE95_DISK_TYPE;
 
 // Physical hard disk
@@ -9,7 +11,10 @@ typedef unsigned int FREE95_DISK_TYPE;
 struct disk
 {
 	FREE95_DISK_TYPE type;
-	int sector_size;	
+	int sector_size;
+	int id;
+	struct filesystem *filesystem;
+	void *fs_private;
 };
 
 void DiskInit();
