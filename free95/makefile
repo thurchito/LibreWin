@@ -11,11 +11,14 @@ C_OBJS := $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(C_SOURCES))
 ASM_OBJS := $(patsubst $(SRC_DIR)/%.asm, $(BUILD_DIR)/%.asm.o, $(ASM_SOURCES))
 
 # Include paths and compiler flags
-INCLUDES := -I./src
+INCLUDES := -Isrc/include # -Ifree95/src/base/acpica/include
 FLAGS := -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops \
-         -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function \
-         -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter \
-         -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
+        -fstrength-reduce -fomit-frame-pointer -finline-functions \
+        -fno-builtin -Wno-unused-label -Wno-cpp \
+        -nostdlib -nostartfiles -nodefaultlibs -Wall \
+        -Werror -pedantic -Wstrict-aliasing -fstack-protector-all \
+        -fno-exceptions -fno-common \
+        -Os -O2 -pipe $(INCLUDES)
 
 all: $(BIN_DIR)/boot.bin $(BIN_DIR)/kernel.bin
 	rm -rf $(BIN_DIR)/os.bin
