@@ -1,5 +1,5 @@
 #include "streamer.h"
-#include "../memory/heap/kheap.h"
+#include <kheap.h>
 #include "../config.h"
 
 struct disk_stream* diskstreamer_new(int disk_id)

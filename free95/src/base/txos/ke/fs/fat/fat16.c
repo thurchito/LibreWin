@@ -17,11 +17,11 @@ Abstract:
 --*/
 
 #include "fat16.h"
-#include "../../string/string.h"
-#include "../../disk/disk.h"
-#include "../../disk/streamer.h"
-#include "../../memory/heap/kheap.h"
-#include "../../memory/memory.h"
+#include <string.h>
+#include <disk.h>
+#include <streamer.h>
+#include <kheap.h>
+#include <memory.h>
 #include "../../../init/kernel.h"
 #include "../../status.h"
 #include <stdint.h>

@@ -18,9 +18,9 @@ Abstract:
 
 #include "pparser.h"
 #include "../../init/kernel.h"
-#include "../string/string.h"
-#include "../memory/heap/kheap.h"
-#include "../memory/memory.h"
+#include <string.h>
+#include <kheap.h>
+#include <memory.h>
 #include "../status.h"
 
 static int pathparser_path_valid_format(const char* filename)

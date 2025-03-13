@@ -17,7 +17,7 @@ Abstract:
 --*/
 
 #include "paging.h"
-#include "../heap/kheap.h"
+#include <kheap.h>
 #include "../../status.h"
 
 void paging_load_directory(uint32_t* directory);

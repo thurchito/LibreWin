@@ -20,7 +20,7 @@ Abstract:
 #include "heap.h"
 #include "../../config.h"
 #include "../../../init/kernel.h"
-#include "../memory.h"
+#include <memory.h>
 
 struct heap kernel_heap;
 struct heap_table kernel_heap_table;

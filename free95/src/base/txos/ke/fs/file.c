@@ -18,13 +18,13 @@ Abstract:
 
 #include "file.h"
 #include "../config.h"
-#include "../memory/memory.h"
-#include "../memory/heap/kheap.h"
-#include "../string/string.h"
-#include "../disk/disk.h"
+#include <memory.h>
+#include <kheap.h>
+#include <string.h>
+#include <disk.h>
 #include "../status.h"
 #include "../../init/kernel.h"
-#include "fat/fat16.h"
+#include <fat16.h>
 
 struct filesystem* filesystems[FREE95_MAX_FILESYSTEMS];
 struct file_descriptor* file_descriptors[FREE95_MAX_FILE_DESCRIPTORS];

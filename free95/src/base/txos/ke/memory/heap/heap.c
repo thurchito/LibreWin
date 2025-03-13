@@ -19,7 +19,7 @@ Abstract:
 #include "heap.h"
 #include "../../../init/kernel.h"
 #include "../../status.h"
-#include "../../memory/memory.h"
+#include <memory.h>
 #include <stdbool.h>
 
 static int heap_validate_table(void* ptr, void* end, struct heap_table* table)

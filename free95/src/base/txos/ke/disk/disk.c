@@ -16,11 +16,11 @@ Abstract:
 
 --*/
 
-#include "../io/io.h"
+#include <io.h>
 #include "disk.h"
 #include "../config.h"
 #include "../status.h"
-#include "../memory/memory.h"
+#include <memory.h>
 
 struct disk disk;
 

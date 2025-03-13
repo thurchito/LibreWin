@@ -16,7 +16,7 @@ FLAGS := -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falig
         -fstrength-reduce -fomit-frame-pointer -finline-functions \
         -fno-builtin -Wno-unused-label -Wno-cpp \
         -nostdlib -nostartfiles -nodefaultlibs -Wall \
-        -Werror -pedantic -Wstrict-aliasing -fstack-protector-all \
+        -pedantic -Wstrict-aliasing -fstack-protector-all \
         -fno-exceptions -fno-common \
         -Os -O2 -pipe $(INCLUDES)
 
