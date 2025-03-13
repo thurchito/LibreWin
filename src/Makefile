@@ -27,10 +27,10 @@ all: $(BIN_DIR)/boot.bin $(BIN_DIR)/kernel.bin
 	sudo cp ./hello.txt /mnt/d
 	sudo umount /mnt/d
 
-$(BIN_DIR)/kernel.bin: $(C_OBJS) $(ASM_OBJS)
-	mkdir -p $(BIN_DIR)
-	i686-elf-ld -g -relocatable $(C_OBJS) $(ASM_OBJS) -o $(BUILD_DIR)/kernelfull.o
-	i686-elf-gcc $(FLAGS) -T ./base/txos/init/linker.ld -o $(BIN_DIR)/kernel.bin -ffreestanding -O0 -nostdlib $(BUILD_DIR)/kernelfull.o
+./bin/kernel.bin: $(ASM_OBJS) $(C_OBJS)
+	mkdir -p bin
+	i686-elf-ld -g -relocatable $(ASM_OBJS) $(C_OBJS) -o ./build/kernelfull.o
+	i686-elf-gcc $(FLAGS) -T ./base/txos/init/linker.ld -o ./bin/kernel.bin -ffreestanding -O0 -nostdlib ./build/kernelfull.o
 
 $(BIN_DIR)/boot.bin: $(SRC_DIR)/boot/fat/x86fboot.asm
 	mkdir -p $(BIN_DIR)
