@@ -27,10 +27,37 @@ Abstract:
 #include "../ke/disk/disk.h"
 #include "../ke/fs/pparser.h"
 #include "../ke/disk/streamer.h"
+#include "../ke/fs/fat/fat16.h"
 
 uint16_t* video_mem = 0;
 uint16_t terminal_row = 0;
 uint16_t terminal_col = 0;
+
+/* Hardware text mode color constants. */
+enum vga_color
+{
+	VGA_COLOR_BLACK = 0,
+	VGA_COLOR_BLUE = 1,
+	VGA_COLOR_GREEN = 2,
+	VGA_COLOR_CYAN = 3,
+	VGA_COLOR_RED = 4,
+	VGA_COLOR_MAGENTA = 5,
+	VGA_COLOR_BROWN = 6,
+	VGA_COLOR_LIGHT_GREY = 7,
+	VGA_COLOR_DARK_GREY = 8,
+	VGA_COLOR_LIGHT_BLUE = 9,
+	VGA_COLOR_LIGHT_GREEN = 10,
+	VGA_COLOR_LIGHT_CYAN = 11,
+	VGA_COLOR_LIGHT_RED = 12,
+	VGA_COLOR_LIGHT_MAGENTA = 13,
+	VGA_COLOR_LIGHT_BROWN = 14,
+	VGA_COLOR_WHITE = 15,
+};
+
+static inline uint8_t vga_entry_color(enum vga_color fg, enum vga_color bg) 
+{
+	return fg | bg << 4;
+}
 
 uint16_t terminal_make_char(char c, char colour)
 {
@@ -73,7 +100,19 @@ void terminal_initialize()
     }   
 }
 
-
+void FirstTimeBootInit()
+{
+	video_mem = (uint16_t*)(0xB8000);
+    terminal_row = 0;
+    terminal_col = 0;
+    for (int y = 0; y < VGA_HEIGHT; y++)
+    {
+        for (int x = 0; x < VGA_WIDTH; x++)
+        {
+            terminal_putchar(x, y, ' ', vga_entry_color(VGA_COLOR_BLUE, VGA_COLOR_BLUE));
+        }
+    }   
+}
 
 void print(const char* str)
 {
@@ -149,13 +188,17 @@ void kernel_main()
 
 	DbgPrint("kernel_main() called\n\r");
 
-    terminal_initialize();
+    FirstTimeBootInit();
     DbgPrint("VGA Text Mode Initialized\n\r");
-    print("Free95 0.2.1\nBooted Successfully");
+    print("Free95 is starting...\n");
 
 	kheap_init();
 
 	DbgPrint("Kernel Heap Initialized\n\r");
+
+	fs_init();
+
+	DbgPrint("Filesystem Initialized\n\r");
 
     idt_init();
 
@@ -180,16 +223,28 @@ void kernel_main()
 	DbgPrint("\n\r");
 
 	DiskInit();
+	
 	DbgPrint("Disk Driver Initialized\n\r");
 
     enable_interrupts();
 
     DbgPrint("Enabled Interrupts\n\r");
 
-    struct disk_stream *stream = diskstreamer_new(0);
-    diskstreamer_seek(stream, 0x201);
-    unsigned char c = 0;
-    diskstreamer_read(stream, &c, 1);
+	DbgPrint("Boot sequence complete\n\r");
+
+	terminal_initialize();
+	print("Welcome to Free95.\nAll debugging outputs have been printed to COM1 Serial Port (If one is attached)\n");
+
+	int fd = fopen("0:/hello.txt", "r");
+
+	if (fd)
+	{
+		DbgPrint("Opened hello.txt\n\r");
+	}
+	else
+	{
+		DbgPrint("Could not open hello.txt\n\r");
+	}
 
     while(1);
 }

@@ -59,6 +59,8 @@ void DiskInit()
     memset(&disk, 0, sizeof(disk));
     disk.type = FREE95_DISK_TYPE_REAL;
     disk.sector_size = FREE95_SECTOR_SIZE;
+    disk.filesystem = fs_resolve(&disk);
+    disk.id = 0;
 }
 
 struct disk* GetDisk(int index)

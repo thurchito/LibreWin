@@ -1,50 +1,51 @@
-# Licensed under GNU GPL 3.0
-CC  := gcc
-CXX := g++
+SRC_DIR := ./src
+BUILD_DIR := ./build
+BIN_DIR := ./bin
 
-# x86/32 = x86
-# x86/64 = x64
-# arm/32 = arm
-# arm/64 = aarch64
-PLATFORM ?= x86/32
+# Find all .c and .asm files, excluding the bootloader's .asm file
+C_SOURCES := $(shell find $(SRC_DIR) -type f -name "*.c")
+ASM_SOURCES := $(shell find $(SRC_DIR) -type f -name "*.asm" ! -name "x86fboot.asm")
 
-SRC   := ./src
-BIN   := ./build/bin
-OBJ   := ./build/free95/obj
+# Convert sources to object file paths
+C_OBJS := $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(C_SOURCES))
+ASM_OBJS := $(patsubst $(SRC_DIR)/%.asm, $(BUILD_DIR)/%.asm.o, $(ASM_SOURCES))
 
-rfind  = $(foreach dir,$(wildcard $(1:=/*)),$(call rfind,$(dir),$2) $(filter $(subst *,%,$2), $(dir)))
+# Include paths and compiler flags
+INCLUDES := -I./src
+FLAGS := -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops \
+         -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function \
+         -fno-builtin -Werror -Wno-unused-label -Wno-cpp -Wno-unused-parameter \
+         -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc
 
-LDFLAGS := -T ./res/linker.ld -nostdlib
+all: $(BIN_DIR)/boot.bin $(BIN_DIR)/kernel.bin
+	rm -rf $(BIN_DIR)/os.bin
+	dd if=$(BIN_DIR)/boot.bin >> $(BIN_DIR)/os.bin
+	dd if=$(BIN_DIR)/kernel.bin >> $(BIN_DIR)/os.bin
+	dd if=/dev/zero bs=1048576 count=16 >> $(BIN_DIR)/os.bin
+	sudo mkdir -p /mnt/d
+	sudo mount -t vfat $(BIN_DIR)/os.bin /mnt/d
+	sudo cp ./src/base/txos/hello.txt /mnt/d
+	sudo umount /mnt/d
 
-ifeq ($(word 1,$(subst /, ,$(PLATFORM))),x86)
-ifeq ($(word 2,$(subst /, ,$(PLATFORM))),32)
-	LDFLAGS += -m elf_i386
-endif
-endif
+./bin/kernel.bin: $(ASM_OBJS) $(C_OBJS)
+	mkdir -p bin
+	i686-elf-ld -g -relocatable $(ASM_OBJS) $(C_OBJS) -o ./build/kernelfull.o
+	i686-elf-gcc $(FLAGS) -T ./src/base/txos/init/linker.ld -o ./bin/kernel.bin -ffreestanding -O0 -nostdlib ./build/kernelfull.o
 
-SOURCES := $(call rfind,$(SRC),*.c)
-ASMSRC  := $(call rfind,$(SRC),*.s) $(call rfind,$(SRC),*.asm)
-ASMOBJ  := $(patsubst $(SRC)/%.s,$(OBJ)/%.s.o,$(ASMSRC))
-COBJ    := $(patsubst $(SRC)/%.c,$(OBJ)/%.c.o,$(SOURCES))
-CFLAGS= -m32 -std=gnu99 -ffreestanding -O2 -Wall -Wextra -fno-exceptions -I$(SRC)
-ASFLAGS=-felf32
+$(BIN_DIR)/boot.bin: $(SRC_DIR)/base/txos/boot/fat/x86fboot.asm
+	mkdir -p $(BIN_DIR)
+	nasm -f bin $< -o $@
 
-all: $(COBJ) $(ASMOBJ) link run
-
-link: $(COBJ) $(ASMOBJ)
-	mkdir -p $(BIN)
-	ld $(LDFLAGS) -o $(BIN)/nxoskrnl.nef $(ASMOBJ) $(COBJ)
-
-$(OBJ)/%.s.o: $(SRC)/%.asm $(SRC)/%.s
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	mkdir -p $(dir $@)
-	nasm $(ASFLAGS) src/$*.s -o $@
+	i686-elf-gcc $(INCLUDES) $(FLAGS) -std=gnu99 -c $< -o $@
 
-$(OBJ)/%.c.o: $(SRC)/%.c
+$(BUILD_DIR)/%.asm.o: $(SRC_DIR)/%.asm
 	mkdir -p $(dir $@)
-	$(CC) -c $(CFLAGS) src/$*.c -o $@
-
-run:
-	qemu-system-i386 -kernel $(BIN)/nxoskrnl.nef
+	nasm -felf32 -g $< -o $@
 
 clean:
-	rm -rf ./build/*
+	rm -rf $(BIN_DIR)/boot.bin $(BIN_DIR)/kernel.bin $(BIN_DIR)/os.bin $(BUILD_DIR)/*
+
+qemu:
+	qemu-system-i386 -hda $(BIN_DIR)/os.bin -serial stdio
