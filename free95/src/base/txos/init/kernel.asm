@@ -43,13 +43,22 @@ _start:
     ; Remap the master PIC
     mov al, 00010001b
     out 0x20, al ; Tell master PIC
+    out 0xA0, al ; Tell slave PIC
 
-    mov al, 0x20 ; Interrupt 0x20 is where master ISR should start
+    mov al, 0x20 ; Master ISR vector offset
     out 0x21, al
+    mov al, 0x28 ; Slave ISR vector offset
+    out 0xA1, al
+
+    mov al, 00000100b ; Tell master PIC that there is a slave at IRQ2 (00000100b = 4)
+    out 0x21, al
+    mov al, 00000010b ; Tell slave PIC its cascade identity (00000010b = 2)
+    out 0xA1, al
 
     mov al, 00000001b
     out 0x21, al
-    ; End remap of the master PIC
+    out 0xA1, al
+    ; End remap of the PICs
 
     call kernel_main
 
