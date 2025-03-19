@@ -20,17 +20,14 @@ FLAGS := -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falig
         -fno-exceptions -fno-common \
         -Os -O2 -pipe $(INCLUDES)
 
-all: $(BIN_DIR)/boot.bin $(BIN_DIR)/kernel.bin
+$(BIN_DIR)/os.bin: $(BIN_DIR)/boot.bin $(BIN_DIR)/kernel.bin
 	rm -rf $(BIN_DIR)/os.bin
 	dd if=$(BIN_DIR)/boot.bin >> $(BIN_DIR)/os.bin
 	dd if=$(BIN_DIR)/kernel.bin >> $(BIN_DIR)/os.bin
-	dd if=/dev/zero bs=1048576 count=16 >> $(BIN_DIR)/os.bin
-	sudo mkdir -p /mnt/d
-	sudo mount -t vfat $(BIN_DIR)/os.bin /mnt/d
-	sudo cp ./src/base/txos/hello.txt /mnt/d
-	sudo umount /mnt/d
+	dd if=/dev/zero bs=1048576 count=16 >>$(BIN_DIR)/os.bin
+	MTOOLS_SKIP_CHECK=1 mcopy -i $(BIN_DIR)/os.bin ./src/base/txos/hello.txt ::hello.txt
 
-./bin/kernel.bin: $(ASM_OBJS) $(C_OBJS)
+$(BIN_DIR)/kernel.bin: $(ASM_OBJS) $(C_OBJS)
 	mkdir -p bin
 	i686-elf-ld -g -relocatable $(ASM_OBJS) $(C_OBJS) -o ./build/kernelfull.o
 	i686-elf-gcc $(FLAGS) -T ./src/base/txos/init/linker.ld -o ./bin/kernel.bin -ffreestanding -O0 -nostdlib ./build/kernelfull.o
