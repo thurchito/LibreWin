@@ -94,6 +94,7 @@ all: ./bin/boot.bin ./bin/kernel.bin
 	i686-elf-gcc $(INCLUDES) -I./base/txos/ke/string $(FLAGS) -std=gnu99 -c ./base/txos/ke/string/string.c -o ./build/string/string.o
 
 clean:
+	rm -rf build
 	rm -rf ./bin/boot.bin
 	rm -rf ./bin/kernel.bin
 	rm -rf ./bin/os.bin
