@@ -16,7 +16,5 @@ Look up the syscall in the table you want to use and follow it like this:
     int 0x2e       ; execute syscall
 ```
 ## Syscall Table
-    
-|      Name     |           Description            |    eax   |    ebx   |    ecx   |    edx   |    esx   |    edi   |
-|---------------|----------------------------------|----------|----------|----------|----------|----------|----------|
-|    sys_exit   |   exits with error code {ebx}    |     1    |    int   |   null   |   null   |   null   |   null   |
+- NtDisplayString: Displays string {ebx} in text mode. EBX must be a PUNICODE_STRING
+- NtOpenFile: Opens a file.
