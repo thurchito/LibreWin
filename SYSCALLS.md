@@ -1,18 +1,18 @@
 # Free95 Syscall Table
 
-A table of all current system calls for free95.
+A table of all current system calls for NT 4.0 implemented in Free95.
 
 ## How to use
 
 Look up the syscall in the table you want to use and follow it like this:
 
 ``` 
-    mov eax, {eax} : 1st paramater (eax)
-    mov ebx, {ebx} ; 2nd paramater (ebx)
-    mov ecx, {ecx} ; 3rd paramater (ecx)
-    mov edx, {edx} ; 4th paramater (edx)
-    mov esx, {esx} ; 5th paramater (esx)
-    mov edi, {edi} ; 6th paramater (edi)
+    mov eax, {eax} : 1st parameter (eax)
+    mov ebx, {ebx} ; 2nd parameter (ebx)
+    mov ecx, {ecx} ; 3rd parameter (ecx)
+    mov edx, {edx} ; 4th parameter (edx)
+    mov esx, {esx} ; 5th parameter (esx)
+    mov edi, {edi} ; 6th parameter (edi)
     int 0x2e       ; execute syscall
 ```
 ## Syscall Table
