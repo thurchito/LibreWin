@@ -23,3 +23,6 @@ Look up the syscall in the table you want to use and follow it like this:
 |---------------|------------------------------------------|----------|-----------------------|----------|----------|----------|----------|-|
 |NtDisplayString|Displays string {ebx} in text mode.       |0x2e      |PUNICODE_STRING        |null      |null      |null      |null      |null|
 |NtOpenFile     |Opens {ebx} file with {ecx} access, {edx} object attributes, {esi} I/O Status Block, {edi} sharing access, and {ebp} Open Options|0x4f|PHANDLE|INT|POBJECT_ATTRIBUTES|PVOID|ULONG|ULONG|
+
+
+>fix the table and change the values if i messed something up. this comment is meant for maintainers, please delete once you finish fixing.
