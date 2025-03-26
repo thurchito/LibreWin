@@ -318,11 +318,40 @@ void LdrRelocMemory(PPEImageFileProcessed pPeImageFileProcessed, LPVOID pBufInMe
     }
 }
 
-void LdrLoadPe(const LPSTR path)
+void join_paths(const char* str1, const char* str2, char* result, size_t result_size)
+{
+    // Calculate the lengths of the input strings
+    size_t len1 = strlen(str1);
+    size_t len2 = strlen(str2);
+
+    // Ensure there's enough space in the result buffer
+    if (result_size < len1 + len2 + 2) { // +1 for '/' and +1 for null terminator
+        print("Error: Result buffer is too small.\n");
+        return;
+    }
+
+    // Handle different cases for concatenation
+    if (str1[len1 - 1] == '/' && str2[0] == '/') {
+        snprintf(result, result_size, "%s%s", str1, str2 + 1); // Skip the extra '/'
+    } else if (str1[len1 - 1] != '/' && str2[0] != '/') {
+        snprintf(result, result_size, "%s/%s", str1, str2); // Add a '/'
+    } else {
+        snprintf(result, result_size, "%s%s", str1, str2); // Direct concatenation
+    }
+}
+
+LPVOID LdrLoadPe(const LPSTR path)
 {
     DbgPrint("LdrLoadPe() called with params:\npath=%s\n", path);
 
-    int fd = fopen(path, "r");
+    const char *ex = "0:/";
+    char file_path[260];
+
+    join_paths(ex, path, file_path, sizeof(file_path));
+
+    DbgPrint(file_path);
+
+    int fd = fopen(file_path, "r");
 
 	if (fd)
 	{
@@ -350,25 +379,15 @@ void LdrLoadPe(const LPSTR path)
         LdrRelocMemory(processedFile, (LPVOID)pBufInMemPE);
 
         // typedef WINBOOL(*DLLMAIN)(HINSTANCE, DWORD, LPVOID);
-        typedef WINBOOL(*MAIN)(DWORD, PCHAR);
+        // typedef WINBOOL(*MAIN)(DWORD, PCHAR);
 
         LPVOID pEntry = ADD_OFFSET_TO_POINTER(pBufInMemPE, processedFile->AddressOfEntryPointOffset);
 
-        if (processedFile->IsDll)
-        {
-            // FIXME: This shit does not want to work.
-            // throws a fucking "Segment Not Present" error
-            // ((DLLMAIN)pEntry)((HINSTANCE)pBufInMemPE, 1, NULL);
-
-            DbgLog("LdrLoadPe(): Unimplemented DLL Execution", LOG_ERROR);
-        }
-        else
-        {
-            ((MAIN)pEntry)(1, NULL);
-        }
+        return pEntry;
     }
     else
     {
         DbgLog("LdrLoadPe(): Failed to open PE File", LOG_FAIL);
+        return NULL;
     }
 }

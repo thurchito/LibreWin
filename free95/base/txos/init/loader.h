@@ -46,6 +46,6 @@ WINBOOL IsValidPE(const LPVOID lpImage);
 WINBOOL IsDLL(const LPVOID hDLLData);
 WINBOOL IsValidArch(const LPVOID lpImage);
 WINBOOL HasCallBacks(const LPVOID lpImage);
-void LdrLoadPe(const LPSTR path);
+LPVOID LdrLoadPe(const LPSTR path);
 
 #endif

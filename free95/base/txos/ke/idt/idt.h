@@ -63,6 +63,8 @@ typedef struct _OSVERSIONINFOEXA
 typedef OSVERSIONINFOEXA OSVERSIONINFOEX;
 typedef LPOSVERSIONINFOEXA LPOSVERSIONINFOEX;
 
+//char* strcat(char* dest, const char* src);
+int isEnter();
 void KeBugCheck(unsigned long BugCheckCode);
 void idt_init();
 void enable_interrupts();

@@ -347,35 +347,91 @@ void (*dll_start)();
 
 char output[128] = {0};
 
+int contains_newline(const char *str)
+{
+    if (str == NULL) // Check for null pointer
+    {
+        return 0;
+    }
+
+    while (*str != '\0') // Iterate through the string
+    {
+        if (*str == '\n') // Check for newline character
+        {
+            return 1;
+        }
+        str++;
+    }
+    return 0; // Return false if no newline character found
+}
+
+static char ex_buffer[256];
+int exec = 0;
+
+void SetExecBuffer(char *b)
+{
+    strcpy(ex_buffer, b);
+    exec = 1;
+}
+
 void KiUserInit()
 {
     PrintString(copyright);
 
     PrintString("\nWelcome to ");
     PrintString(output);
-    PrintString("\n\nCheck out SynthLauncher!\n\n");
+    PrintString("\nCheck out SynthLauncher!\n");
 
-    print("Executing 0:/program.exe...\n");
+    PrintString("0:/> ");
 
-    asm volatile (
-		        "movl $0x02, %%eax\n\t"
-		        "movl %0, %%ebx\n\t"
-		        "int $0x2e\n\t"
-		        :
-		        : "r"("0:/program.exe")
-		        : "%eax", "%ebx"
-		);
+    while(1)
+    {
+        if (exec)
+        {
+            PrintString("\nExecuting: ");
+            PrintString(ex_buffer);
+            PrintString("\n");
 
-    print("Operation completed successfully.\n");
+            LPVOID syscallResult;
 
-    asm volatile (
-		        "movl $0x02, %%eax\n\t"
-		        "movl %0, %%ebx\n\t"
-		        "int $0x2e\n\t"
-		        :
-		        : "r"("0:/ntdll.dll")
-		        : "%eax", "%ebx"
-		);
+            asm volatile (
+                    "movl $0x02, %%eax\n\t"
+                    "movl %0, %%ebx\n\t"
+                    "int $0x2e\n\t"
+                    "mov %%eax, %0\n"
+                    : "=r" (syscallResult)
+                    : "r"(ex_buffer)
+                    : "%eax", "%ebx"
+            );
+
+            typedef WINBOOL(*MAIN)(DWORD, PCHAR);
+
+            if (syscallResult != NULL)
+            {
+                ((MAIN)syscallResult)(1, NULL);
+                PrintString("Operation completed successfully.\n");
+            }
+            else
+            {
+                PrintString("Operation was not completed successfully.\n");
+            }
+
+            exec = 0;
+
+            PrintString("\n0:/> ");
+        }
+    }
+//
+//     print("Operation completed successfully.\n");
+//
+//     asm volatile (
+// 		        "movl $0x02, %%eax\n\t"
+// 		        "movl %0, %%ebx\n\t"
+// 		        "int $0x2e\n\t"
+// 		        :
+// 		        : "r"("0:/ntdll.dll")
+// 		        : "%eax", "%ebx"
+// 		);
 }
 
 // Warning: PE structures ahead. Close your eyes or bleach them!

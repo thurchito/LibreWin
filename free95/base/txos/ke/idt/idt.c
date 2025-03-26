@@ -34,9 +34,95 @@ extern void int21h();
 extern void int2eh();
 extern void no_interrupt();
 
+char* strcat(char* dest, const char* src)
+{
+    char* dest_ptr = dest;
+
+    // Move dest_ptr to the end of the destination string
+    while (*dest_ptr != '\0')
+    {
+        dest_ptr++;
+    }
+
+    // Append characters from src to dest
+    while (*src != '\0')
+    {
+        *dest_ptr = *src;
+        dest_ptr++;
+        src++;
+    }
+
+    // Null-terminate the result
+    *dest_ptr = '\0';
+
+    return dest;
+}
+
+#define KEYBOARD_DATA_PORT 0x60
+#define KEYBOARD_STATUS_PORT 0x64
+
+static char kb[] =
+    {
+        0, 27, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b',
+        '\t', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n',
+        0, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',
+        0, '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 0,
+        '*', 0, ' ', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+static char input_buffer[256]; // Global input buffer
+static int input_pos = 0;                   // Current position in the buffer
+
 void int21h_handler()
 {
-    // TODO: Keyboard driver here!
+    uint8_t scancode = insb(KEYBOARD_DATA_PORT);
+    char key = kb[scancode];
+
+    if (key == '\b' && input_pos > 0) // Handle backspace
+    {
+        input_pos--;
+        input_buffer[input_pos] = '\0';
+        terminal_writechar('\b', 15);
+    }
+    else if (key == '\n') // Handle Enter key
+    {
+        input_buffer[input_pos] = '\0'; // Null-terminate the string
+
+        SetExecBuffer(input_buffer);
+
+//         print("\nExecuting: ");
+//         print(input_buffer);
+//         print("\n");
+//
+//         LdrLoadPe(input_buffer); // Load the program
+
+        input_pos = 0; // Reset the buffer position
+
+        //print("\n> ");
+    }
+    else if (key != 0 && input_pos < sizeof(input_buffer) - 1) // Append valid characters
+    {
+        input_buffer[input_pos++] = key;
+        DbgPutc(key); // Echo the character
+        terminal_writechar(key, 15);
+    }
+
+    outb(0x20, 0x20); // Send End of Interrupt (EOI) signal
+}
+
+int NtGetInputBufferSyscall(char *buffer)
+{
+    int buffer_size = 256;
+
+    if (buffer == NULL || buffer_size <= 0)
+    {
+        return 445;
+    }
+
+    int copy_size = input_pos < buffer_size ? input_pos : buffer_size - 1;
+    memcpy(buffer, input_buffer, copy_size);
+    buffer[copy_size] = '\0'; // Null-terminate the string
+
+    return STATUS_SUCCESS;
 }
 
 int NtOpenFileSyscall(
@@ -89,7 +175,7 @@ int NtDisplayStringSyscall(PUNICODE_STRING String)
 void *syscall_dispatcher(uint32_t syscall_number, uint32_t arg1, uint32_t arg2, uint32_t arg3,
                          uint32_t arg4, uint32_t arg5, uint32_t arg6, uint32_t arg7, uint32_t arg8, uint32_t arg9)
 {
-    uint32_t result = STATUS_INVALID_SYSTEM_SERVICE;
+    void* result = (void*)STATUS_INVALID_SYSTEM_SERVICE;
 
     switch (syscall_number)
     {
@@ -103,23 +189,28 @@ void *syscall_dispatcher(uint32_t syscall_number, uint32_t arg1, uint32_t arg2, 
             {
                 print("Test syscall!\n");
             }
-            result = 1;
+            //result = 1;
             break;
 
         case 0x02:
-            LdrLoadPe((char*)arg1);
+            //LdrLoadPe((char*)arg1);
+            result = (void*)LdrLoadPe((char*)arg1);;
+            break;
+
+        case 0x03:
+            result = (void*)NtGetInputBufferSyscall((char *)arg1);
             break;
 
         case 0x002e:
             // Only uncomment while debugging this syscall
             // print("NtDisplayString() syscall called\n");
-            result = NtDisplayStringSyscall((PUNICODE_STRING)arg1);
+            result = (void*)NtDisplayStringSyscall((PUNICODE_STRING)arg1);
             break;
 
         case 0x004f:
             // Only uncomment while debugging this syscall
             // print("NtOpenFile() syscall called\n");
-            result = NtOpenFileSyscall(0, 0, (POBJECT_ATTRIBUTES)arg3, 0, 0, 0);
+            result = (void*)NtOpenFileSyscall(0, 0, (POBJECT_ATTRIBUTES)arg3, 0, 0, 0);
 
             DbgPrint("NtOpenFile(): result is %d\n", result);
 
@@ -224,6 +315,8 @@ void idt_init()
     idt_set(6, idt_inv);
     idt_set(8, idt_df);
     idt_set(11, idt_snp);
+
+    idt_set(0x21, int21h);
 
     // Load the interrupt descriptor table
     idt_load(&idtr_descriptor);
