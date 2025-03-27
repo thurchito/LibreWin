@@ -1,1 +1,1 @@
-./buildexe.sh && ./build.sh && make clean
+make clean && ./buildexe.sh && ./builddll.sh && ./build.sh
