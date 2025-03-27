@@ -7,13 +7,13 @@ all: ./bin/boot.bin ./bin/kernel.bin
 	dd if=./bin/boot.bin >> ./bin/os.bin
 	dd if=./bin/kernel.bin >> ./bin/os.bin
 	dd if=/dev/zero bs=1048576 count=16 >> ./bin/os.bin
-	sudo mount -t vfat ./bin/os.bin /mnt/d
+	sudo mount -t vfat ./bin/os.bin /mnt/z
 	# Copy a file over
-	sudo cp ./boot.ini /mnt/d
-	sudo cp ./system.ini /mnt/d
-	sudo cp ./test.txt /mnt/d
-	sudo cp ./program.exe /mnt/d
-	sudo cp ./ntdll.dll /mnt/d
+	sudo cp ./boot.ini /mnt/z
+	sudo cp ./system.ini /mnt/z
+	sudo cp ./test.txt /mnt/z
+	sudo cp ./program.exe /mnt/z
+	sudo cp ./ntdll.dll /mnt/z
 	sudo umount /mnt/d
 ./bin/kernel.bin: $(FILES)
 	i686-elf-ld -g -relocatable $(FILES) -o ./build/kernelfull.o
