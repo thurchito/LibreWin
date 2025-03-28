@@ -25,6 +25,7 @@ all: ./bin/boot.bin ./bin/kernel.bin
 	i686-elf-gcc $(FLAGS) -T ./base/txos/init/linker.ld -o ./bin/kernel.bin -ffreestanding -O0 -nostdlib ./build/kernelfull.o
 
 ./bin/boot.bin: ./base/txos/boot/fat/x86fboot.asm
+	mkdir -p ./bin
 	nasm -f bin ./base/txos/boot/fat/x86fboot.asm -o ./bin/boot.bin
 
 ./build/kernel.asm.o: ./base/txos/init/kernel.asm
