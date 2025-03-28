@@ -3,7 +3,8 @@ Free95 is an open-source windows-compatible operating system.
 
 # Gallery
 ## 0.3.0 Beta 2
-![image](https://github.com/user-attachments/assets/86945ffb-af7f-4e2d-89c1-3dffd81ce151)
+![image](https://github.com/user-attachments/assets/ca2b0490-efe6-49fa-bc39-7673d6d63337)
+
 
 # What it is
 Free95 is your friendly Windows Environment with an added trust of the open source community, all your favorite games, applications and such from Windows will run perfectly fine on Free95 aswell!
