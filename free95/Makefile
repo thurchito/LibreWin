@@ -7,6 +7,7 @@ all: ./bin/boot.bin ./bin/kernel.bin
 	dd if=./bin/boot.bin >> ./bin/os.bin
 	dd if=./bin/kernel.bin >> ./bin/os.bin
 	dd if=/dev/zero bs=1048576 count=16 >> ./bin/os.bin
+	mkdir /mnt/z
 	sudo mount -t vfat ./bin/os.bin /mnt/z
 	# Copy a file over
 	sudo cp ./boot.ini /mnt/z
@@ -14,7 +15,8 @@ all: ./bin/boot.bin ./bin/kernel.bin
 	sudo cp ./test.txt /mnt/z
 	sudo cp ./program.exe /mnt/z
 	sudo cp ./ntdll.dll /mnt/z
-	sudo umount /mnt/d
+	sudo umount /mnt/z
+	rm -rf /mnt/z
 ./bin/kernel.bin: $(FILES)
 	i686-elf-ld -g -relocatable $(FILES) -o ./build/kernelfull.o
 	i686-elf-gcc $(FLAGS) -T ./base/txos/init/linker.ld -o ./bin/kernel.bin -ffreestanding -O0 -nostdlib ./build/kernelfull.o
