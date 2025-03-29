@@ -2,6 +2,8 @@ FILES = ./build/kernel.asm.o ./build/kernel.o ./build/loader.o ./build/user.asm.
 INCLUDES = -I./base/txos
 FLAGS = -v -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-unused-variable -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc -B/usr/local/bin/i686-elf-
 all: ./bin/boot.bin ./bin/kernel.bin
+	./buildexe.sh
+	./builddll.sh
 	rm -rf ./bin/os.bin
 	dd if=./bin/boot.bin >> ./bin/os.bin
 	dd if=./bin/kernel.bin >> ./bin/os.bin
@@ -18,6 +20,7 @@ all: ./bin/boot.bin ./bin/kernel.bin
 	sudo cp ./reboot.exe /mnt/z
 	sudo cp ./test.bat /mnt/z
 	sudo cp ./bsod.exe /mnt/z
+	sudo cp ./blorp.exe /mnt/z
 	sudo umount /mnt/z
 	sudo rm -rf /mnt/z
 ./bin/kernel.bin: $(FILES)

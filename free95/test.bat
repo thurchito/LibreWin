@@ -1,3 +1,3 @@
 cls
 hello.exe
-buildno.exe
+freever.exe
