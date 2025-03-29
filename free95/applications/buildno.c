@@ -29,7 +29,7 @@ void RtlCreateStringFromUint(unsigned int value, char *str);
 void _start()
 {
     unsigned int nBuild = 5400;
-    unsigned int nBeta = 2;
+    unsigned int nBeta = 3;
     unsigned int nMajorVersion = 0;
     unsigned int nMiddleVersion = 3;
     unsigned int nMinorVersion = 0;
