@@ -21,6 +21,7 @@ all: ./bin/boot.bin ./bin/kernel.bin
 	sudo cp ./test.bat /mnt/z
 	sudo cp ./bsod.exe /mnt/z
 	sudo cp ./blorp.exe /mnt/z
+	sudo cp ./lsbin.exe /mnt/z
 	sudo umount /mnt/z
 	sudo rm -rf /mnt/z
 ./bin/kernel.bin: $(FILES)
