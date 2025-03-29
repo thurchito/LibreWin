@@ -7,9 +7,9 @@ If you do not agree to the terms, do not use the code.
 
 
 	PROJECT: Free95 Userspace Components
-	FILE: hello.c
-	DESCRIPTION: A Hello World Native NT Application.
-	AUTHOR: @KapTheGuy, @realblobii
+	FILE: blorp.c
+	DESCRIPTION: Displays silly alien noises in the native shell. Testing app for print lib
+	AUTHOR: @realblobii
 
 --*/
 #include "appinclude/print.h"
@@ -17,9 +17,9 @@ If you do not agree to the terms, do not use the code.
 
 void _start()
 {
-	char fnamebuf[] = "Hello, World\n";
+	char msg[] = "gnarp gnap! gleeb! blorp!\n";
 
-	PUNICODE_STRING fname = to_punicode(fnamebuf);
+	PUNICODE_STRING puni_msg = to_punicode(msg);
 
-	NtDisplayString(fname);
+	NtDisplayString(puni_msg);
 }
