@@ -24,8 +24,8 @@
 - An NT Clone
 - A Windows 95 Clone (NT 4.0! Not 95, althought NT 4 is the NT version of 95.)
 
-# Why?
-To remove Windows's bloat, and security problems. Being controlled by a large corporation is unsettling.
+# Project Purpose
+Purpose of the project is to remove Windows's bloat and privacy security problems. Being controlled by a large corporation is profoundly disturbing. The main goal is to build free open-source operating system focused on full Microsoft Windows compatibility. [Free95](https://versoft-software.github.io/) ofeers its own Kernel and built-in executive NT layer for running Windows applications smoothly.
 
 # How can i join this project?
 You can join this project by simply doing so, literally. Just create a pull request, unless you have discord, in which case you can DM dripkap_19416 to join and communicate with other developers of the project.
