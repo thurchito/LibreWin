@@ -1,15 +1,24 @@
 # Free95
-Free95 is an open-source windows-compatible operating system.
+**[Free95](https://versoft-software.github.io/)** is an open-source windows-compatible operating system.  
+
+>[!WARNING]
+>This is free software and comes with ABSOLUTELY NO WARRANTY!
+
 
 # Gallery
 ## 0.3.0 Beta 2
 ![image](https://github.com/user-attachments/assets/ca2b0490-efe6-49fa-bc39-7673d6d63337)
+### Changelog
+- added the Native Shell in graphical mode
+- added a loader for .bat files, and you can now run the provided executables in the shell
+- added the print.h library to make it easier to use NtDisplayString in apps
 
 
 # What it is
-Free95 is your friendly Windows Environment with an added trust of the open source community, all your favorite games, applications and such from Windows will run perfectly fine on Free95 aswell!
+**[Free95](https://versoft-software.github.io/)** operating systemy combines your friendly Windows Environment with an added trust of the open source community. All your favorite games, applications and such from Windows will run perfectly fine on Free95 aswell!
 
--- FREE95 IS NOT A RECREATION OR A CLONE OF THE MICROSOFT WINDOWS NT KERNEL. IT SIMPLY SUPPORTS WINDOWS APPLICATIONS BY IMPLEMENTING THE NT EXECUTIVE LAYER TO APPLICATIONS. IT IS A KERNEL OF IT'S OWN :)
+>[!NOTE]
+> FREE95 IS NOT A RECREATION OR A CLONE OF THE MICROSOFT WINDOWS NT KERNEL. IT SIMPLY SUPPORTS WINDOWS APPLICATIONS BY IMPLEMENTING THE NT EXECUTIVE LAYER TO APPLICATIONS. IT IS A KERNEL OF IT'S OWN :)
 
 # What it is NOT
 - An NT Clone
