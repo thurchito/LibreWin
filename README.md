@@ -1,4 +1,8 @@
 # Free95
+![GitHub License](https://img.shields.io/github/license/Versoft-Software/Free95) ![GitHub Release Date](https://img.shields.io/github/release-date/Versoft-Software/Free95) ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/Versoft-Software/Free95/total) ![GitHub contributors](https://img.shields.io/github/contributors/Versoft-Software/Free95) ![GitHub language count](https://img.shields.io/github/languages/count/Versoft-Software/Free95) ![GitHub top language](https://img.shields.io/github/languages/top/Versoft-Software/Free95)
+
+
+
 **[Free95](https://versoft-software.github.io/)** is an open-source windows-compatible operating system.  
 
 >[!WARNING]
