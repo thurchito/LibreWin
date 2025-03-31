@@ -40,4 +40,6 @@ To try Free95, you can either:
     make
     ```
 
- 2. Download a prebuilt binary from the [Releases](https://github.com/versoft-software/free95/releases) section.
+    inside the ```free95/``` directory.
+
+ 2. **Download a prebuilt binary** from the [Releases](https://github.com/versoft-software/free95/releases) section.
