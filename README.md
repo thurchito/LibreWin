@@ -4,6 +4,8 @@
 >[!WARNING]
 >This is free software and comes with ABSOLUTELY NO WARRANTY!
 
+# Status
+We are currently forking a pre-existing kernel called ["Uinxed"](https://github.com/ViudiraTech/Uinxed-Kernel) and we will implement our current existing NT Executive Layer Implementation to the fork. The kernel is stable and has many features, we have decided it is better than building our own kernel from the ground up.
 
 # Gallery
 ## 0.3.0 Beta 2
@@ -15,22 +17,23 @@
 
 
 # What it is
-**[Free95](https://versoft-software.github.io/)** combines the familiar Windows environment with the reliability and transparency of open-source software. It aims to provide full compatibility with Windows applications, ensuring your favorite games and programs run seamlessly.
+**[Free95](https://versoft-software.github.io/)** combines the familiar Windows environment with the reliability and transparency of open-source software. It aims to provide full compatibility with Windows applications, ensuring your favorite games and programs run seamlessly.  
+Originally, Free95 aimed to develop a custom-built kernel. However, we have now decided to fork the existing [Uinxed Kernel](https://github.com/ViudiraTech/Uinxed-Kernel) due to its stability and rich feature set. We are actively **integrating our NT Executive Layer** into this kernel, ensuring **seamless Windows application support**.
 
 >[!NOTE]
-> Free95 is NOT a recreation or clone of the Microsoft Windows NT kernel. It provides Windows application support by implementing its own NT executive layer. Free95 features a custom-built kernel, independent of Windows NT.
+> Free95 is NOT a recreation or clone of the Microsoft Windows NT kernel. Instead, we enhance an existing kernel by implementing our own NT executive layer, allowing Windows applications to run smoothly.
 
 # What it is NOT
 - An NT Clone
 - A Windows 95 Clone (NT 4.0! Not 95, althought NT 4 is the NT version of 95.)
 
 # Project Purpose
-The primary goal of Free95 is to eliminate Windows' bloatware and privacy concerns. Dependence on a large corporation for an operating system is unsettling. Our mission is to develop a fully open-source OS that maintains **full compatibility with Microsoft Windows applications**. Free95 achieves this through its **custom kernel and built-in NT executive layer**, ensuring smooth execution of Windows programs.
+Dependence on a large corporation for an operating system is profoundly disturbing. The goal of Free95 is to eliminate Windows' bloatware and privacy issues while maintaining full software compatibility. With the adoption of the [Uinxed Kernel](https://github.com/ViudiraTech/Uinxed-Kernel), we can accelerate development while focusing on **refining the NT executive layer for optimal Windows application support**.
 
 # How to join the project?
 You can join this project by simply doing so, literally. Anyone is welcome to contribute! You can:  
  - Submit a **pull request** with your contributions.
- - Join the development discussion on Discord: DM ```dripkap_19416``` 
+ - Join the development discussion on **[Discord](https://discord.com/)**: DM ```dripkap_19416``` 
 
 # Running releases
 To try Free95, you can either:  
