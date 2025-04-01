@@ -18,7 +18,6 @@ all: ./bin/boot.bin ./bin/kernel.bin
 	sudo cp ./reboot.exe /mnt/z
 	sudo cp ./test.bat /mnt/z
 	sudo cp ./bsod.exe /mnt/z
-	sudo cp ./blorp.exe /mnt/z
 	sudo cp ./lsbin.exe /mnt/z
 	sudo umount /mnt/z
 	sudo rm -rf /mnt/z
@@ -124,3 +123,5 @@ clean:
 	rm -rf ./build
 	rm -rf *.exe
 	rm -rf *.dll
+run:
+	qemu-system-i386 -drive format=raw,file=./bin/os.bin -serial stdio
