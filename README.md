@@ -11,6 +11,9 @@
 # Status
 We are currently forking a pre-existing kernel called ["Uinxed"](https://github.com/ViudiraTech/Uinxed-Kernel) and we will implement our current existing NT Executive Layer Implementation to the fork. The kernel is stable and has many features, we have decided it is better than building our own kernel from the ground up.
 
+# THANK YOU FOR 500 DOWNLOADS!
+Holy cow, 500 downloads? Thank you guys so much!
+
 # Gallery
 ## 0.3.0 Beta 2
 ![image](https://github.com/user-attachments/assets/ca2b0490-efe6-49fa-bc39-7673d6d63337)
