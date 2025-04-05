@@ -39,7 +39,7 @@ Dependence on a large corporation for an operating system is profoundly disturbi
 # How to join the project?
 You can join this project by simply doing so, literally. Anyone is welcome to contribute! You can:  
  - Submit a **pull request** with your contributions.
- - Join the development discussion on **[Discord](https://discord.com/)**: DM ```dripkap_19416``` 
+ - Join the development discussion on **[Discord](https://discord.com/)**: DM ```dripkap_19416``` or ```kappetrov```
 
 # Running releases
 To try Free95, you can either:  
