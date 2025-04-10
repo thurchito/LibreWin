@@ -13,7 +13,7 @@ Look up the syscall in the table you want to use and follow it like this:
     mov ebx, {ebx} ; 2nd parameter (ebx)
     mov ecx, {ecx} ; 3rd parameter (ecx)
     mov edx, {edx} ; 4th parameter (edx)
-    mov esx, {esx} ; 5th parameter (esx)
+    mov esi, {esi} ; 5th parameter (esi)
     mov edi, {edi} ; 6th parameter (edi)
     int 0x2e       ; execute syscall
 ```
