@@ -27,17 +27,17 @@ typedef struct _UNICODE_STRING
     char* Buffer;
 } UNICODE_STRING, *PUNICODE_STRING;
 
-typedef struct _PVOID
-{
-	void *SystemInformation;
-} PVOID;
-
-typedef struct _ULONG
-{
-	unsigned long *SystemInformationLength;
-} ULONG, *PULONG;
-
-typedef long NTSTATUS;
+typedef enum _SYSTEM_INFORMATION_CLASS {
+    SystemBasicInformation = 0,
+    SystemPerformanceInformation = 2,
+    SystemTimeOfDayInformation = 3,
+    SystemProcessInformation = 5,
+    SystemProcessorPerformanceInformation = 8,
+    SystemInterruptInformation = 23,
+    SystemExceptionInformation = 33,
+    SystemRegistryQuotaInformation = 37,
+    SystemLookasideInformation = 45
+} SYSTEM_INFORMATION_CLASS;
 
 typedef struct _SYSTEM_BASIC_INFORMATION {
     ULONG Reserved;
@@ -49,14 +49,13 @@ typedef struct _SYSTEM_BASIC_INFORMATION {
     UCHAR NumberOfProcessors;
 } SYSTEM_BASIC_INFORMATION;
 
-NTSTATUS(NTAPI *NtQuerySystemInformation)(
-    SYSTEM_INFORMATION_CLASS SystemInformationClass,
-    PVOID SystemInformation,
-    ULONG SystemInformationLength,
-    PULONG ReturnLength);
-
+SYSTEM_INFORMATION_CLASS SystemInformationClass;
+PVOID SystemInformation;
+ULONG SystemInformationLength;
+PULONG ReturnLength;
 SYSTEM_BASIC_INFORMATION sbi;
 ULONG len;
+ULONG sbisize = sizeof(sbi);
 
 int NtDisplayString(PUNICODE_STRING String);
 
@@ -66,7 +65,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 	fname->Length = 30;
 	fname->MaximumLength = 50;
 	fname->Buffer = "Hello, DLL!\n";
-	
+
 	NtDisplayString(fname);
 
     switch (ul_reason_for_call) {
@@ -105,16 +104,23 @@ int NtDisplayString(PUNICODE_STRING String)
     return 0;
 }
 
-int NtQuerySystemInformation(SystemBasicInformation, &sbi, sizeof(sbi), &len) {
-	*PUNICODE_STRING QueryResult;
-	if (SystemInformationClass == SystemBasicInformation) {
-		asm volatile (
-						mov eax, 1
-						cpuid
-						test edx, 1 shl 28
-						mov eax, 1
-						cpuid
-						movzx ebx, QueryResult
+NTSTATUS NTAPI MyNtQuerySystemInformation(
+    SYSTEM_INFORMATION_CLASS SystemInformationClass,
+    PVOID                    SystemInformation,
+    ULONG                    SystemInformationLength,
+    PULONG                   ReturnLength
+)
+{
+    if (SystemInformationClass == SystemBasicInformation) {
+		unsigned int eax, ebx, ecx, edx;
+        unsigned int ProcessorCount = 0;
+        asm volatile (
+            "cpuid"
+            : "=a" (eax), "=b" (ebx), "=c" (ecx), "=d" (edx)
+            : "a" (0xB), "c" (0)
+
 		);
-	}
-}
+    ProcessorCount = ebx & 0xFF;
+    SystemInformation = (PVOID)(uintptr_t)ProcessorCount;
+    }
+};
