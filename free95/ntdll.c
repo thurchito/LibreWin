@@ -91,17 +91,16 @@ int NtDisplayString(PUNICODE_STRING String)
 }
 
 int NtQuerySystemInformation(SYSTEM_INFORMATION_CLASS SystemInformationClass, PVOID SystemInformation, ULONG SystemInformationLength) {
+	char* QueryResult;
 	if (SystemInformationClass == SystemBasicInformation) {
-		char ProcessorCount
 		asm volatile (
 						mov eax, 1
 						cpuid
 						test edx, 1 shl 28
 						mov eax, 1
 						cpuid
-						movzx ebx, ProcessorCount
+						movzx ebx, QueryResult
 		);
-		NtDisplayString(ProcessorCount);
 	}
 }
 	
