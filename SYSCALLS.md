@@ -23,4 +23,4 @@ Look up the syscall in the table you want to use and follow it like this:
 |NtDisplayString|Displays string {ebx} in text mode. (Typically crash screen)       |0x2e      |PUNICODE_STRING        |null      |null      |null      |null      |null|
 |NtOpenFile     |Opens {ebx} file with {ecx} access, {edx} object attributes, {esi} I/O Status Block, {edi} sharing access, and {ebp} Open Options|0x4f|PHANDLE|INT|POBJECT_ATTRIBUTES|PVOID|ULONG|ULONG|
 |NtShutdownSystem|Shuts down system with SHUTDOWN_ACTION {ebx}       |0x00b4      |SHUTDOWN_ACTION        |null      |null      |null      |null      |null|
-|NtQuerySystemInformation|Displays requested system information. Outputs result through SystemInformation variable.    |0x1    |PUNICODE_STRING    |null    |0x10000000    |null    |null    |null|
+|NtQuerySystemInformation|Displays requested system information. Outputs result through SystemInformation variable.    |0xB    |PUNICODE_STRING    |0x0    |0x10000000    |null    |null    |null|
