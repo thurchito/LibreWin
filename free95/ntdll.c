@@ -27,11 +27,6 @@ typedef struct _UNICODE_STRING
     char* Buffer;
 } UNICODE_STRING, *PUNICODE_STRING;
 
-typedef struct _SYSTEM_INFORMATION_CLASS
-{
-	char* SystemInformationClass;
-} SYSTEM_INFORMATION_CLASS;
-
 typedef struct _PVOID
 {
 	void *SystemInformation;
@@ -42,6 +37,26 @@ typedef struct _ULONG
 	unsigned long *SystemInformationLength;
 } ULONG, *PULONG;
 
+typedef long NTSTATUS;
+
+typedef struct _SYSTEM_BASIC_INFORMATION {
+    ULONG Reserved;
+    ULONG TimerResolution;
+    ULONG PageSize;
+    ULONG MinimumApplicationAddress;
+    ULONG MaximumApplicationAddress;
+    ULONG ActiveProcessorsAffinityMask;
+    UCHAR NumberOfProcessors;
+} SYSTEM_BASIC_INFORMATION;
+
+NTSTATUS(NTAPI *NtQuerySystemInformation)(
+    SYSTEM_INFORMATION_CLASS SystemInformationClass,
+    PVOID SystemInformation,
+    ULONG SystemInformationLength,
+    PULONG ReturnLength);
+
+SYSTEM_BASIC_INFORMATION sbi;
+ULONG len;
 
 int NtDisplayString(PUNICODE_STRING String);
 
@@ -90,8 +105,8 @@ int NtDisplayString(PUNICODE_STRING String)
     return 0;
 }
 
-int NtQuerySystemInformation(SYSTEM_INFORMATION_CLASS SystemInformationClass, PVOID SystemInformation, ULONG SystemInformationLength) {
-	char* QueryResult;
+int NtQuerySystemInformation(SystemBasicInformation, &sbi, sizeof(sbi), &len) {
+	*PUNICODE_STRING QueryResult;
 	if (SystemInformationClass == SystemBasicInformation) {
 		asm volatile (
 						mov eax, 1
@@ -103,9 +118,3 @@ int NtQuerySystemInformation(SYSTEM_INFORMATION_CLASS SystemInformationClass, PV
 		);
 	}
 }
-	
-
-
-
-
-
