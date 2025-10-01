@@ -27,6 +27,22 @@ typedef struct _UNICODE_STRING
     char* Buffer;
 } UNICODE_STRING, *PUNICODE_STRING;
 
+typedef struct _SYSTEM_INFORMATION_CLASS
+{
+	char* SystemInformationClass;
+} SYSTEM_INFORMATION_CLASS;
+
+typedef struct _PVOID
+{
+	void *SystemInformation;
+} PVOID;
+
+typedef struct _ULONG
+{
+	unsigned long *SystemInformationLength;
+} ULONG, *PULONG;
+
+
 int NtDisplayString(PUNICODE_STRING String);
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved)
@@ -73,3 +89,24 @@ int NtDisplayString(PUNICODE_STRING String)
 
     return 0;
 }
+
+int NtQuerySystemInformation(SYSTEM_INFORMATION_CLASS SystemInformationClass, PVOID SystemInformation, ULONG SystemInformationLength) {
+	if (SystemInformationClass == SystemBasicInformation) {
+		char ProcessorCount
+		asm volatile (
+						mov eax, 1
+						cpuid
+						test edx, 1 shl 28
+						mov eax, 1
+						cpuid
+						movzx ebx, ProcessorCount
+		);
+		NtDisplayString(ProcessorCount);
+	}
+}
+	
+
+
+
+
+
