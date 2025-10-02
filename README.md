@@ -3,7 +3,7 @@
 
 
 
-**[LibreWin](https://thurchito.github.io/)** is an open-source windows-compatible operating system.
+**[LibreWin](https://thurchito.github.io/)** is an open source Windows compatible operating system.
 
 >[!WARNING]
 >This is free software and comes with ABSOLUTELY NO WARRANTY!
