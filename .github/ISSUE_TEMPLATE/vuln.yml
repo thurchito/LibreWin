@@ -1,5 +1,5 @@
-name: Free95 Security Vulnerability Report
-description: Report a security vulnerability in Free95.
+name: LibreWin Security Vulnerability Report
+description: Report a security vulnerability in LibreWin.
 title: "[Vuln]: "
 labels: ["security", "vulnerability", "triage"]
 assignees: []
@@ -7,8 +7,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thank you for reporting a security vulnerability in Free95.
-        Your contribution helps enhance the security and reliability of Free95.
+        Thank you for reporting a security vulnerability in LibreWin.
+        Your contribution helps enhance the security and reliability of LibreWin.
   - type: input
     id: contact
     attributes:
@@ -58,7 +58,7 @@ body:
     id: affected-components
     attributes:
       label: Affected Components
-      description: Identify which parts of Free95 are affected by this vulnerability.
+      description: Identify which parts of LibreWin are affected by this vulnerability.
       multiple: true
       options:
         - Kernel
@@ -78,8 +78,8 @@ body:
     id: responsible-disclosure
     attributes:
       label: Security Policy
-      description: By submitting this vulnerability report, you agree to follow Free95's security policy.
+      description: By submitting this vulnerability report, you agree to follow LibreWin's security policy.
       options:
-        - label: I agree to follow Free95's Security Policy
+        - label: I agree to follow LibreWin's Security Policy
           required: true
 

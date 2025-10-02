@@ -1,6 +1,6 @@
-# Free95 Syscall Table
+# LibreWin Syscall Table
 
-A table of all current system calls for NT 4.0 implemented in Free95.
+A table of all current system calls for NT 4.0 implemented in LibreWin.
 
 *SYSCALL.md template by blobii*
 
@@ -8,7 +8,7 @@ A table of all current system calls for NT 4.0 implemented in Free95.
 
 Look up the syscall in the table you want to use and follow it like this:
 
-``` 
+```
     mov eax, {eax} : 1st parameter (eax)
     mov ebx, {ebx} ; 2nd parameter (ebx)
     mov ecx, {ecx} ; 3rd parameter (ecx)
