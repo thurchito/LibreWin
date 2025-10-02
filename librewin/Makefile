@@ -14,7 +14,7 @@ all: ./bin/boot.bin ./bin/kernel.bin
 	sudo cp ./open.exe /mnt/z
 	sudo cp ./hello.exe /mnt/z
 	sudo cp ./stop.exe /mnt/z
-	sudo cp ./freever.exe /mnt/z
+	sudo cp ./librever.exe /mnt/z
 	sudo cp ./reboot.exe /mnt/z
 	sudo cp ./test.bat /mnt/z
 	sudo cp ./bsod.exe /mnt/z

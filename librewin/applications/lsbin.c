@@ -18,7 +18,7 @@ If you do not agree to the terms, do not use the code.
 const char* apps[] =
 {
     "reboot.exe", "stop.exe", "hello.exe",
-    "open.exe", "lsbin.exe", "freever.exe", "bsod.exe"
+    "open.exe", "lsbin.exe", "librever.exe", "bsod.exe"
 };
 
 void _start()
