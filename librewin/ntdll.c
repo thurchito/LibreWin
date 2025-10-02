@@ -20,12 +20,28 @@ Abstract:
 #include <windows.h>
 #include <stdio.h>
 
-typedef struct _UNICODE_STRING
-{
-    unsigned short Length;
-    unsigned short MaximumLength;
-    char* Buffer;
-} UNICODE_STRING, *PUNICODE_STRING;
+typedef struct _SYSTEM_BASIC_INFORMATION {
+    ULONG Reserved;
+    ULONG TimerResolution;
+    ULONG PageSize;
+    ULONG MinimumApplicationAddress;
+    ULONG MaximumApplicationAddress;
+    ULONG ActiveProcessorsAffinityMask;
+    UCHAR NumberOfProcessors;
+} SYSTEM_BASIC_INFORMATION;
+
+typedef struct _SYSTEM_BASICPROCESS_INFORMATION {
+    ULONG NextEntryOffset;
+    HANDLE UniqueProcessId;
+    HANDLE InheritedFromUniqueProcessId;
+    ULONG64 SequenceNumber;
+    UNICODE_STRING ImageName;
+} SYSTEM_BASICPROCESS_INFORMATION, *PSYSTEM_BASICPROCESS_INFORMATION;
+
+typedef struct _SYSTEM_CODEINTEGRITY_INFORMATION {
+    ULONG Length;
+    ULONG CodeIntegrityOptions;
+} SYSTEM_CODEINTEGRITY_INFORMATION, *PSYSTEM_CODEINTEGRITY_INFORMATION;
 
 typedef enum _SYSTEM_INFORMATION_CLASS {
     SystemBasicInformation = 0,
@@ -39,15 +55,27 @@ typedef enum _SYSTEM_INFORMATION_CLASS {
     SystemLookasideInformation = 45
 } SYSTEM_INFORMATION_CLASS;
 
-typedef struct _SYSTEM_BASIC_INFORMATION {
-    ULONG Reserved;
-    ULONG TimerResolution;
-    ULONG PageSize;
-    ULONG MinimumApplicationAddress;
-    ULONG MaximumApplicationAddress;
-    ULONG ActiveProcessorsAffinityMask;
-    UCHAR NumberOfProcessors;
-} SYSTEM_BASIC_INFORMATION;
+typedef struct _SYSTEM_SPECULATION_CONTROL_INFORMATION {
+    struct {
+        ULONG BpbEnabled : 1;
+        ULONG BpbDisabledSystemPolicy : 1;
+        ULONG BpbDisabledNoHardwareSupport : 1;
+        ULONG SpecCtrlEnumerated : 1;
+        ULONG SpecCmdEnumerated : 1;
+        ULONG IbrsPresent : 1;
+        ULONG StibpPresent : 1;
+        ULONG SmepPresent : 1;
+        ULONG SpeculativeStoreBypassDisableAvailable : 1;
+        ULONG SpeculativeStoreBypassDisableSupported : 1;
+        ULONG SpeculativeStoreBypassDisabledSystemWide : 1;
+        ULONG SpeculativeStoreBypassDisabledKernel : 1;
+        ULONG SpeculativeStoreBypassDisableRequired : 1;
+        ULONG BpbDisabledKernelToUser : 1;
+        ULONG SpecCtrlRetpolineEnabled : 1;
+        ULONG SpecCtrlImportOptimizationEnabled : 1;
+        ULONG Reserved : 16;
+    } SpeculationControlFlags;
+} SYSTEM_SPECULATION_CONTROL_INFORMATION, * PSYSTEM_SPECULATION_CONTROL_INFORMATION;
 
 SYSTEM_INFORMATION_CLASS SystemInformationClass;
 PVOID SystemInformation;
