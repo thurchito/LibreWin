@@ -44,6 +44,10 @@ typedef struct _SYSTEM_CODEINTEGRITY_INFORMATION {
     ULONG CodeIntegrityOptions;
 } SYSTEM_CODEINTEGRITY_INFORMATION, *PSYSTEM_CODEINTEGRITY_INFORMATION;
 
+typedef struct _SYSTEM_EXCEPTION_INFORMATION {
+    BYTE Reserved1[16];
+} SYSTEM_EXCEPTION_INFORMATION;
+
 typedef enum _SYSTEM_INFORMATION_CLASS {
     SystemBasicInformation = 0,
     SystemPerformanceInformation = 2,
@@ -149,7 +153,18 @@ NTSTATUS NTAPI NtQuerySystemInformation(
             : "a" (0xB), "c" (0)
 
 		);
-    ProcessorCount = ebx & 0xFF;
-    SystemInformation = (PVOID)(uintptr_t)ProcessorCount;
+    	ProcessorCount = ebx & 0xFF;
+    	SystemInformation = (PVOID)(uintptr_t)ProcessorCount;
+    }
+	if (SystemInformationClass == SystemCodeIntegrityInformation) {
+		SYSTEM_CODEINTEGRITY_INFORMATION* sci = (SYSTEM_CODEINTEGRITY_INFORMATION*)SystemInformation;
+
+   		if (sci->Length < sizeof(SYSTEM_CODEINTEGRITY_INFORMATION))
+       		return STATUS_INFO_LENGTH_MISMATCH;
+
+   		if (sci->CodeIntegrityOptions & CODEINTEGRITY_OPTION_ENABLED)
+   		{
+			// WIP
+  		}
     }
 };
