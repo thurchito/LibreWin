@@ -133,7 +133,7 @@ int NtDisplayString(PUNICODE_STRING String)
     return 0;
 }
 
-NTSTATUS NTAPI MyNtQuerySystemInformation(
+NTSTATUS NTAPI NtQuerySystemInformation(
     SYSTEM_INFORMATION_CLASS SystemInformationClass,
     PVOID                    SystemInformation,
     ULONG                    SystemInformationLength,
