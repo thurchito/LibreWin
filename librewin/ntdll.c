@@ -19,7 +19,7 @@ Abstract:
 
 #include <windows.h>
 #include <stdio.h>
-#include "basestd.h"
+#include "basetsd.h"
 
 typedef struct _SYSTEM_BASIC_INFORMATION {
     ULONG Reserved;
