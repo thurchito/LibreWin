@@ -5,8 +5,18 @@
 #define WINAPI __stdcall
 #define APIENTRY WINAPI
 #define CALLBACK __stdcall
+#define KVA_SHADOW_ENABLED                    0x00000001
+#define KVA_SHADOW_USER_GLOBAL                0x00000002
+#define KVA_SHADOW_PCID                       0x00000004
+#define KVA_SHADOW_INVPCID                    0x00000008
+#define KVA_SHADOW_REQUIRED                   0x00000010
+#define KVA_SHADOW_REQUIRED_AVAILABLE         0x00000020
+#define KVA_INVALID_PTE_BIT_MASK              0x00000FC0
+#define KVA_L1D_FLUSH_SUPPORTED               0x00001000
+#define KVA_L1TF_MITIGATION_PRESENT           0x00002000
 #define CONST const
 #define VOID void
+
 
 #if !defined(_M_IX86)
  typedef unsigned __int64 ULONGLONG;
