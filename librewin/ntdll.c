@@ -60,6 +60,10 @@ typedef enum _SYSTEM_INFORMATION_CLASS {
     SystemLookasideInformation = 45
 } SYSTEM_INFORMATION_CLASS;
 
+typedef struct _SYSTEM_KERNEL_VA_SHADOW_INFORMATION {
+    ULONG Flags;
+} SYSTEM_KERNEL_VA_SHADOW_INFORMATION, *PSYSTEM_KERNEL_VA_SHADOW_INFORMATION;
+
 typedef struct _SYSTEM_SPECULATION_CONTROL_INFORMATION {
     struct {
         ULONG BpbEnabled : 1;
@@ -142,8 +146,7 @@ NTSTATUS NTAPI NtQuerySystemInformation(
     PVOID                    SystemInformation,
     ULONG                    SystemInformationLength,
     PULONG                   ReturnLength
-)
-{
+) {
     if (SystemInformationClass == SystemBasicInformation) {
 		unsigned int eax, ebx, ecx, edx;
         unsigned int ProcessorCount = 0;
@@ -164,7 +167,30 @@ NTSTATUS NTAPI NtQuerySystemInformation(
 
    		if (sci->CodeIntegrityOptions & CODEINTEGRITY_OPTION_ENABLED)
    		{
-			// WIP
+			return STATUS_SUCCESS;
   		}
     }
-};
+	if (SystemInformationClass == SystemKernelVaShadowInformation) {
+		SYSTEM_KERNEL_VA_SHADOW_INFORMATION* skvsi = (SYSTEM_KERNEL_VA_SHADOW_INFORMATION*)SystemInformation;
+		if (skvsi->Flags & KVA_SHADOW_ENABLED)
+        return KVA_SHADOW_ENABLED;
+		
+    	if (skvsi->Flags & KVA_SHADOW_REQUIRED)
+        return KVA_SHADOW_REQUIRED;
+		
+    	if (skvsi->Flags & KVA_SHADOW_REQUIRED_AVAILABLE)
+        return KVA_SHADOW_REQUIRED_AVAILABLE;
+		
+    	if (skvsi->Flags & KVA_SHADOW_PCID)
+        return KVA_SHADOW_PCID;
+		
+    	if (skvsi->Flags & KVA_SHADOW_INVPCID)
+        return KVA_SHADOW_INVPCID;
+		
+   		if (skvsi->Flags & KVA_L1TF_MITIGATION_PRESENT)
+        return KVA_L1TF_MITIGATION_PRESENT;
+		
+    	if (skvsi->Flags & KVA_L1D_FLUSH_SUPPORTED)
+        return KVA_L1D_FLUSH_SUPPORTED;
+	}
+}
