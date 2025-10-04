@@ -101,17 +101,17 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 	PUNICODE_STRING fname = 0;
 	fname->Length = 30;
 	fname->MaximumLength = 50;
-	fname->Buffer = "Hello, DLL!\n";
+	fname->Buffer = L"Hello, DLL!\n";
 
 	NtDisplayString(fname);
 
     switch (ul_reason_for_call) {
         case DLL_PROCESS_ATTACH:
-        	fname->Buffer = "Process attached!\n";
+        	fname->Buffer = L"Process attached!\n";
         	NtDisplayString(fname);
             break;
         case DLL_THREAD_ATTACH:
-        	fname->Buffer = "Thread attached!\n";
+        	fname->Buffer = L"Thread attached!\n";
         	NtDisplayString(fname);
             break;
         case DLL_THREAD_DETACH:
