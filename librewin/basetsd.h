@@ -1,6 +1,3 @@
-#define WINVER 0x0A00
-#define _WIN32_WINNT 0x0500
-#define _WIN32_WINNT_WIN2K 0x0500
 #define _MSC_VER 1200
 #define WINAPI __stdcall
 #define APIENTRY WINAPI
@@ -10,7 +7,6 @@
 
 #define SystemCodeIntegrityInformation 103
 #define SystemKernelVaShadowInformation 196
-#define SystemExceptionInformation 33
 
 #define CODEINTEGRITY_OPTION_ENABLED                 0x00000001
 #define CODEINTEGRITY_OPTION_TESTSIGN                0x00000002
