@@ -504,7 +504,30 @@ NTSTATUS NTAPI NtQuerySystemInformation(
 
     		return STATUS_SUCCESS;
 		}
-		
+
+		case SystemSpeculationControlInformation:
+		{
+    		if (SystemInformationLength < sizeof(SYSTEM_SPECULATION_CONTROL_INFORMATION))
+        		return STATUS_INFO_LENGTH_MISMATCH;
+
+   			PSYSTEM_SPECULATION_CONTROL_INFORMATION sci =
+        		(PSYSTEM_SPECULATION_CONTROL_INFORMATION)SystemInformation;
+
+    		sci->SpeculationControlFlags.BpbEnabled = 1;
+    		sci->SpeculationControlFlags.IbrsPresent = 1;
+    		sci->SpeculationControlFlags.StibpPresent = 1;
+    		sci->SpeculationControlFlags.SpeculativeStoreBypassDisableAvailable = 1;
+
+    		sci->SpeculationControlFlags.Reserved = 0;
+
+    		DisplayMessage(&fname_struct, L"[SystemSpeculationControlInformation] Dummy speculative execution flags set");
+
+    		if (ReturnLength)
+        		*ReturnLength = sizeof(*sci);
+
+    		return STATUS_SUCCESS;
+		}
+
         default:
         {
             swprintf(buf, 512, L"[NtQuerySystemInformation] Unsupported class: %lu", SystemInformationClass);
