@@ -77,6 +77,83 @@ typedef struct _SYSTEM_LEAP_SECOND_INFORMATION {
     BYTE Reserved1[16];
 } SYSTEM_LEAP_SECOND_INFORMATION, *PSYSTEM_LEAP_SECOND_INFORMATION;
 
+typedef struct _SYSTEM_LOOKASIDE_INFORMATION {
+    BYTE Reserved1[16];
+} SYSTEM_LOOKASIDE_INFORMATION, *PSYSTEM_LOOKASIDE_INFORMATION;
+
+typedef struct _SYSTEM_PERFORMANCE_INFORMATION {
+    LARGE_INTEGER IdleTime;
+    LARGE_INTEGER ReadTransferCount;
+    LARGE_INTEGER WriteTransferCount;
+    LARGE_INTEGER OtherTransferCount;
+    ULONG ReadOperationCount;
+    ULONG WriteOperationCount;
+    ULONG OtherOperationCount;
+    ULONG AvailablePages;
+    ULONG CommittedPages;
+    ULONG CommitLimit;
+    ULONG PeakCommitment;
+    ULONG PageFaultCount;
+    ULONG CopyOnWriteCount;
+    ULONG TransitionCount;
+    ULONG CacheTransitionCount;
+    ULONG DemandZeroCount;
+    ULONG PageReadCount;
+    ULONG PageReadIoCount;
+    ULONG CacheReadCount;
+    ULONG CacheIoCount;
+    ULONG DirtyPagesWriteCount;
+    ULONG DirtyWriteIoCount;
+    ULONG MappedPagesWriteCount;
+    ULONG MappedWriteIoCount;
+    ULONG PagedPoolPages;
+    ULONG NonPagedPoolPages;
+    ULONG PagedPoolAllocs;
+    ULONG PagedPoolFrees;
+    ULONG NonPagedPoolAllocs;
+    ULONG NonPagedPoolFrees;
+    ULONG FreeSystemPtes;
+    ULONG ResidentSystemCodePage;
+    ULONG TotalSystemDriverPages;
+    ULONG TotalSystemCodePages;
+    ULONG NonPagedPoolLookasideHits;
+    ULONG PagedPoolLookasideHits;
+    ULONG AvailablePagedPoolPages;
+    ULONG ResidentSystemCachePage;
+    ULONG ResidentPagedPoolPage;
+    ULONG ResidentSystemDriverPage;
+    ULONG CcFastReadNoWait;
+    ULONG CcFastReadWait;
+    ULONG CcFastReadResourceMiss;
+    ULONG CcFastReadNotPossible;
+    ULONG CcFastMdlReadNoWait;
+    ULONG CcFastMdlReadWait;
+    ULONG CcFastMdlReadResourceMiss;
+    ULONG CcFastMdlReadNotPossible;
+    ULONG CcMapDataNoWait;
+    ULONG CcMapDataWait;
+    ULONG CcMapDataNoWaitMiss;
+    ULONG CcMapDataWaitMiss;
+    ULONG CcPinMappedDataCount;
+    ULONG CcPinReadNoWait;
+    ULONG CcPinReadWait;
+    ULONG CcPinReadNoWaitMiss;
+    ULONG CcPinReadWaitMiss;
+    ULONG CcCopyReadNoWait;
+    ULONG CcCopyReadWait;
+    ULONG CcCopyReadNoWaitMiss;
+    ULONG CcCopyReadWaitMiss;
+    ULONG CcMdlReadNoWait;
+    ULONG CcMdlReadWait;
+    ULONG CcMdlReadNoWaitMiss;
+    ULONG CcMdlReadWaitMiss;
+    ULONG CcReadAheadIos;
+    ULONG CcLazyWriteIos;
+    ULONG CcLazyWritePages;
+    ULONG CcDataFlushes;
+    ULONG CcDataPages;
+} SYSTEM_PERFORMANCE_INFORMATION, *PSYSTEM_PERFORMANCE_INFORMATION;
+
 typedef struct _SYSTEM_SPECULATION_CONTROL_INFORMATION {
     struct {
         ULONG BpbEnabled : 1;
@@ -160,6 +237,9 @@ NTSTATUS NTAPI NtQuerySystemInformation(
     ULONG                    SystemInformationLength,
     PULONG                   ReturnLength
 ) {
+	if (!SystemInformation)
+        return STATUS_INFO_LENGTH_MISMATCH;
+	
     if (SystemInformationClass == SystemBasicInformation) {
 		unsigned int eax, ebx, ecx, edx;
         unsigned int ProcessorCount = 0;
@@ -250,4 +330,33 @@ NTSTATUS NTAPI NtQuerySystemInformation(
 
     	return STATUS_SUCCESS;
 	}
+	if (SystemInformationClass == SystemLookasideInformation) {
+            printf("[SystemLookasideInformation] Queried (variable-length opaque data)\n");
+            if (ReturnLength) *ReturnLength = 0;
+            // Do not attempt to parse it — version-dependent
+            return STATUS_SUCCESS;
+    }
+	if (SystemInformationClass == SystemPerformanceInformation) {
+            if (SystemInformationLength < sizeof(SYSTEM_PERFORMANCE_INFORMATION))
+                return STATUS_INFO_LENGTH_MISMATCH;
+
+            PSYSTEM_PERFORMANCE_INFORMATION spi =
+                (PSYSTEM_PERFORMANCE_INFORMATION)SystemInformation;
+
+            ZeroMemory(spi, sizeof(*spi));
+            spi->IdleTime.QuadPart = 12345678;
+            spi->PageFaultCount = 42;
+            spi->AvailablePages = 8192;
+
+            printf("[SystemPerformanceInformation]\n");
+            printf("  IdleTime: %lld\n", spi->IdleTime.QuadPart);
+            printf("  PageFaults: %lu\n", spi->PageFaultCount);
+            printf("  AvailablePages: %lu\n", spi->AvailablePages);
+
+            if (ReturnLength) *ReturnLength = sizeof(*spi);
+            return STATUS_SUCCESS;
+    }
+	printf("[NtQuerySystemInformation] Unsupported class: %lu\n",
+    	SystemInformationClass);
+    return STATUS_INVALID_INFO_CLASS;
 }
