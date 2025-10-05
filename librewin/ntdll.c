@@ -155,7 +155,7 @@ typedef struct _SYSTEM_PERFORMANCE_INFORMATION {
 } SYSTEM_PERFORMANCE_INFORMATION, *PSYSTEM_PERFORMANCE_INFORMATION;
 
 typedef struct _SYSTEM_POLICY_INFORMATION {
-    BYTE Reserved[16];  // opaque policy/kernel enforcement data
+    BYTE Reserved[16];
 } SYSTEM_POLICY_INFORMATION, *PSYSTEM_POLICY_INFORMATION;
 
 typedef struct _SYSTEM_SPECULATION_CONTROL_INFORMATION {
@@ -209,7 +209,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
         	NtDisplayString(fname);
             break;
         case DLL_THREAD_DETACH:
-            // Code to run when a thread is destroyed
+
             break;
         case DLL_PROCESS_DETACH:
             break;
@@ -236,7 +236,7 @@ int NtDisplayString(PUNICODE_STRING String)
 }
 
 UNICODE_STRING fname_struct;
-wchar_t fname_buffer[512];  // large enough for all messages
+wchar_t fname_buffer[512];
 fname_struct.Buffer = fname_buffer;
 fname_struct.Length = 0;
 fname_struct.MaximumLength = sizeof(fname_buffer);
@@ -260,23 +260,18 @@ NTSTATUS NTAPI NtQuerySystemInformation(
     ULONG                    SystemInformationLength,
     PULONG                   ReturnLength
 ) {
-    // Check for null pointer
+
     if (!SystemInformation)
         return STATUS_INFO_LENGTH_MISMATCH;
 
-    // Initialize UNICODE_STRING for output
     UNICODE_STRING fname_struct;
-    wchar_t fname_buffer[512];  // enough space for all messages
+    wchar_t fname_buffer[512];
     fname_struct.Buffer = fname_buffer;
     fname_struct.Length = 0;
     fname_struct.MaximumLength = sizeof(fname_buffer);
 
-    // Helper buffer for building messages
     wchar_t buf[512];
 
-    // -----------------------------
-    // Handle each SystemInformationClass
-    // -----------------------------
     switch (SystemInformationClass)
     {
         case SystemExceptionInformation:
@@ -395,11 +390,34 @@ NTSTATUS NTAPI NtQuerySystemInformation(
     		if (SystemInformationLength < sizeof(*spi))
         	return STATUS_INFO_LENGTH_MISMATCH;
 
-    		ZeroMemory(spi, sizeof(*spi));  // fill with safe dummy data
+    		ZeroMemory(spi, sizeof(*spi));
 
     		DisplayMessage(&fname_struct, L"[SystemPolicyInformation] Queried (dummy policy data)");
 
     		if (ReturnLength) *ReturnLength = sizeof(*spi);
+    		return STATUS_SUCCESS;
+		}
+
+		case SystemProcessInformation:
+		{
+    		if (SystemInformationLength < sizeof(SYSTEM_BASICPROCESS_INFORMATION))
+     		   return STATUS_INFO_LENGTH_MISMATCH;
+
+  			PSYSTEM_BASICPROCESS_INFORMATION procInfo = (PSYSTEM_BASICPROCESS_INFORMATION)SystemInformation;
+
+   			procInfo->NextEntryOffset = 0;
+    		procInfo->UniqueProcessId = (HANDLE)1234;
+   			procInfo->InheritedFromUniqueProcessId = (HANDLE)1;
+    		procInfo->SequenceNumber = 1;
+
+    		static wchar_t dummyName[] = L"DummyProcess.exe";
+    		procInfo->ImageName.Buffer = dummyName;
+    		procInfo->ImageName.Length = (USHORT)(wcslen(dummyName) * sizeof(wchar_t));
+    		procInfo->ImageName.MaximumLength = sizeof(dummyName);
+
+    		DisplayMessage(&fname_struct, L"[SystemProcessInformation] Single dummy process entry filled");
+
+    		if (ReturnLength) *ReturnLength = sizeof(SYSTEM_BASICPROCESS_INFORMATION);
     		return STATUS_SUCCESS;
 		}
 
