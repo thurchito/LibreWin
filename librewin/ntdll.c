@@ -170,6 +170,20 @@ NTSTATUS NTAPI NtQuerySystemInformation(
 			return STATUS_SUCCESS;
   		}
     }
+	if (SystemInformationClass == SystemExceptionInformation) {
+    	PSYSTEM_EXCEPTION_INFORMATION sei = 
+        	(PSYSTEM_EXCEPTION_INFORMATION)SystemInformation;
+
+    	if (sei == NULL || SystemInformationLength < sizeof(*sei))
+        	return STATUS_INFO_LENGTH_MISMATCH;
+
+    	for (int i = 0; i < 16; i++) {
+        	printf("%02X ", sei->Reserved1[i]);
+    	}
+    	printf("\n");
+
+    	return STATUS_SUCCESS;
+	}
 	if (SystemInformationClass == SystemKernelVaShadowInformation) {
 		SYSTEM_KERNEL_VA_SHADOW_INFORMATION* skvsi = (SYSTEM_KERNEL_VA_SHADOW_INFORMATION*)SystemInformation;
 		if (skvsi->Flags & KVA_SHADOW_ENABLED)
