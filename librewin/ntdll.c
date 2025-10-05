@@ -60,6 +60,15 @@ typedef enum _SYSTEM_INFORMATION_CLASS {
     SystemLookasideInformation = 45
 } SYSTEM_INFORMATION_CLASS;
 
+typedef struct _SYSTEM_INTERRUPT_INFORMATION {
+    ULONG ContextSwitches;
+    ULONG DpcCount;
+    ULONG DpcRate;
+    ULONG TimeIncrement;
+    ULONG DpcBypassCount;
+    ULONG ApcBypassCount;
+} SYSTEM_INTERRUPT_INFORMATION, *PSYSTEM_INTERRUPT_INFORMATION;
+
 typedef struct _SYSTEM_KERNEL_VA_SHADOW_INFORMATION {
     ULONG Flags;
 } SYSTEM_KERNEL_VA_SHADOW_INFORMATION, *PSYSTEM_KERNEL_VA_SHADOW_INFORMATION;
@@ -184,6 +193,20 @@ NTSTATUS NTAPI NtQuerySystemInformation(
 
     	return STATUS_SUCCESS;
 	}
+	if (SystemInformationClass == SystemInterruptInformation) {
+        PSYSTEM_INTERRUPT_INFORMATION sii =
+            (PSYSTEM_INTERRUPT_INFORMATION)SystemInformation;
+
+        printf("[SystemInterruptInformation]\n");
+        printf("ContextSwitches: %lu\n", sii->ContextSwitches);
+        printf("DpcCount:        %lu\n", sii->DpcCount);
+        printf("DpcRate:         %lu\n", sii->DpcRate);
+        printf("TimeIncrement:   %lu\n", sii->TimeIncrement);
+        printf("DpcBypassCount:  %lu\n", sii->DpcBypassCount);
+        printf("ApcBypassCount:  %lu\n", sii->ApcBypassCount);
+
+        return STATUS_SUCCESS;
+    }
 	if (SystemInformationClass == SystemKernelVaShadowInformation) {
 		SYSTEM_KERNEL_VA_SHADOW_INFORMATION* skvsi = (SYSTEM_KERNEL_VA_SHADOW_INFORMATION*)SystemInformation;
 		if (skvsi->Flags & KVA_SHADOW_ENABLED)
