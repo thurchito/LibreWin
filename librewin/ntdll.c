@@ -158,6 +158,15 @@ typedef struct _SYSTEM_POLICY_INFORMATION {
     BYTE Reserved[16];
 } SYSTEM_POLICY_INFORMATION, *PSYSTEM_POLICY_INFORMATION;
 
+typedef struct _SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION {
+    LARGE_INTEGER IdleTime;
+    LARGE_INTEGER KernelTime;
+    LARGE_INTEGER UserTime;
+    LARGE_INTEGER DpcTime;
+    LARGE_INTEGER InterruptTime;
+    ULONG InterruptCount;
+} SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION, *PSYSTEM_PROCESSOR_PERFORMANCE_INFORMATION;
+
 typedef struct _SYSTEM_SPECULATION_CONTROL_INFORMATION {
     struct {
         ULONG BpbEnabled : 1;
@@ -421,6 +430,35 @@ NTSTATUS NTAPI NtQuerySystemInformation(
     		return STATUS_SUCCESS;
 		}
 
+		case SystemProcessorPerformanceInformation:
+		{
+  			PSYSTEM_PROCESSOR_PERFORMANCE_INFORMATION ppi =
+        		(PSYSTEM_PROCESSOR_PERFORMANCE_INFORMATION)SystemInformation;
+
+    		SYSTEM_INFO sysInfo;
+    		GetSystemInfo(&sysInfo);
+    		DWORD nProcs = sysInfo.dwNumberOfProcessors;
+
+   			if (SystemInformationLength < nProcs * sizeof(SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION))
+        		return STATUS_INFO_LENGTH_MISMATCH;
+
+    		for (DWORD i = 0; i < nProcs; i++) {
+        		ppi[i].IdleTime.QuadPart = 1000 * i;
+        		ppi[i].KernelTime.QuadPart = 2000 * i;
+        		ppi[i].UserTime.QuadPart = 1500 * i;
+        		ppi[i].DpcTime.QuadPart = 50 * i;
+        		ppi[i].InterruptTime.QuadPart = 25 * i;
+        		ppi[i].InterruptCount = 100 + i;
+    		}
+
+    		DisplayMessage(&fname_struct, L"[SystemProcessorPerformanceInformation] Dummy CPU stats filled");
+
+    		if (ReturnLength)
+				*ReturnLength = nProcs * sizeof(SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION);
+    		
+			return STATUS_SUCCESS;
+		}
+		
         default:
         {
             swprintf(buf, 512, L"[NtQuerySystemInformation] Unsupported class: %lu", SystemInformationClass);
