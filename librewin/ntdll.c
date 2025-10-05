@@ -172,6 +172,10 @@ typedef struct _SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION {
     ULONG InterruptCount;
 } SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION, *PSYSTEM_PROCESSOR_PERFORMANCE_INFORMATION;
 
+typedef struct _SYSTEM_REGISTRY_QUOTA_INFORMATION {
+    BYTE Reserved[16];
+} SYSTEM_REGISTRY_QUOTA_INFORMATION, *PSYSTEM_REGISTRY_QUOTA_INFORMATION;
+
 typedef struct _SYSTEM_SPECULATION_CONTROL_INFORMATION {
     struct {
         ULONG BpbEnabled : 1;
@@ -479,6 +483,24 @@ NTSTATUS NTAPI NtQuerySystemInformation(
 
     		if (ReturnLength)
         		*ReturnLength = sizeof(*qpi);
+
+    		return STATUS_SUCCESS;
+		}
+
+		case SystemRegistryQuotaInformation:
+		{
+    		if (SystemInformationLength < sizeof(SYSTEM_REGISTRY_QUOTA_INFORMATION))
+        		return STATUS_INFO_LENGTH_MISMATCH;
+
+    		PSYSTEM_REGISTRY_QUOTA_INFORMATION rqi =
+        	(PSYSTEM_REGISTRY_QUOTA_INFORMATION)SystemInformation;
+
+    		ZeroMemory(rqi, sizeof(*rqi));
+
+    		DisplayMessage(&fname_struct, L"[SystemRegistryQuotaInformation] Queried (dummy data)");
+
+    		if (ReturnLength)
+        		*ReturnLength = sizeof(*rqi);
 
     		return STATUS_SUCCESS;
 		}
