@@ -198,6 +198,14 @@ typedef struct _SYSTEM_SPECULATION_CONTROL_INFORMATION {
     } SpeculationControlFlags;
 } SYSTEM_SPECULATION_CONTROL_INFORMATION, * PSYSTEM_SPECULATION_CONTROL_INFORMATION;
 
+typedef struct _SYSTEM_TIMEOFDAY_INFORMATION {
+    LARGE_INTEGER CurrentTime;
+    LARGE_INTEGER BootTime;
+    LARGE_INTEGER TimeZoneBias;
+    ULONG TimeZoneId;
+    ULONG Reserved[3]; // padding/opaque data
+} SYSTEM_TIMEOFDAY_INFORMATION, *PSYSTEM_TIMEOFDAY_INFORMATION;
+
 SYSTEM_INFORMATION_CLASS SystemInformationClass;
 PVOID SystemInformation;
 ULONG SystemInformationLength;
@@ -524,6 +532,29 @@ NTSTATUS NTAPI NtQuerySystemInformation(
 
     		if (ReturnLength)
         		*ReturnLength = sizeof(*sci);
+
+    		return STATUS_SUCCESS;
+		}
+
+		case SystemTimeOfDayInformation:
+		{
+    		if (SystemInformationLength < sizeof(SYSTEM_TIMEOFDAY_INFORMATION))
+        		return STATUS_INFO_LENGTH_MISMATCH;
+
+    		PSYSTEM_TIMEOFDAY_INFORMATION tdi =
+       			(PSYSTEM_TIMEOFDAY_INFORMATION)SystemInformation;
+
+    		tdi->CurrentTime.QuadPart = 1324567890123456;
+    		tdi->BootTime.QuadPart = 1324560000000000;
+    		tdi->TimeZoneBias.QuadPart = 0;
+    		tdi->TimeZoneId = 0;
+    		for (int i = 0; i < 3; i++)
+    		tdi->Reserved[i] = 0;
+
+    		DisplayMessage(&fname_struct, L"[SystemTimeOfDayInformation] Dummy system time filled");
+
+    		if (ReturnLength)
+        		*ReturnLength = sizeof(*tdi);
 
     		return STATUS_SUCCESS;
 		}
