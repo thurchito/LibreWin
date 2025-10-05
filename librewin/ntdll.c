@@ -320,20 +320,20 @@ NTSTATUS NTAPI NtQuerySystemInformation(
 
         case SystemLeapSecondInformation:
         {
-            PSYSTEM_LEAP_SECOND_INFORMATION lsi = (PSYSTEM_LEAP_SECOND_INFORMATION)SystemInformation;
-
-            if (SystemInformationLength < sizeof(*lsi))
-                return STATUS_INFO_LENGTH_MISMATCH;
-
-            wcscpy(buf, L"[SystemLeapSecondInformation] Raw data: ");
-            wchar_t hex[8];
-            for (int i = 0; i < sizeof(lsi->Reserved1); i++) {
-                swprintf(hex, 8, L"%02X ", lsi->Reserved1[i]);
-                wcsncat(buf, hex, 512 - wcslen(buf) - 1);
-            }
-            SystemPrint(&fname_struct, buf);
-            if (ReturnLength) *ReturnLength = sizeof(*lsi);
-            return STATUS_SUCCESS;
+			wchar_t hex[8];
+			wcscpy(buf, L"[SystemLeapSecondInformation] Raw data: ");
+			for (size_t i = 0; i < sizeof(lsi->Reserved1); ++i) {
+    			unsigned char v;
+    			asm volatile("movb %1, %0"
+                	: "=r"(v)
+                	: "m"(*(volatile unsigned char *)((char *)lsi->Reserved1 + i))
+                	: "memory");
+    			swprintf(hex, 8, L"%02X ", (unsigned int)v);
+    			wcsncat(buf, hex, 512 - wcslen(buf) - 1);
+			}
+			SystemPrint(&fname_struct, buf);
+			if (ReturnLength) *ReturnLength = sizeof(*lsi);
+			return STATUS_SUCCESS;
         }
 
         case SystemLookasideInformation:
