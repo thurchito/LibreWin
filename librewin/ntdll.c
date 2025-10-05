@@ -73,6 +73,10 @@ typedef struct _SYSTEM_KERNEL_VA_SHADOW_INFORMATION {
     ULONG Flags;
 } SYSTEM_KERNEL_VA_SHADOW_INFORMATION, *PSYSTEM_KERNEL_VA_SHADOW_INFORMATION;
 
+typedef struct _SYSTEM_LEAP_SECOND_INFORMATION {
+    BYTE Reserved1[16];
+} SYSTEM_LEAP_SECOND_INFORMATION, *PSYSTEM_LEAP_SECOND_INFORMATION;
+
 typedef struct _SYSTEM_SPECULATION_CONTROL_INFORMATION {
     struct {
         ULONG BpbEnabled : 1;
@@ -229,5 +233,21 @@ NTSTATUS NTAPI NtQuerySystemInformation(
 		
     	if (skvsi->Flags & KVA_L1D_FLUSH_SUPPORTED)
         return KVA_L1D_FLUSH_SUPPORTED;
+	}
+	if (SystemInformationClass == SystemLeapSecondInformation) {
+    	PSYSTEM_LEAP_SECOND_INFORMATION lsi =
+        	(PSYSTEM_LEAP_SECOND_INFORMATION)SystemInformation;
+
+    	if (SystemInformationLength < sizeof(SYSTEM_LEAP_SECOND_INFORMATION))
+        	return STATUS_INFO_LENGTH_MISMATCH;
+
+    	printf("[SystemLeapSecondInformation]\n");
+    	printf("Raw data (16 bytes): ");
+    	for (int i = 0; i < sizeof(lsi->Reserved1); i++) {
+ 	       printf("%02X ", lsi->Reserved1[i]);
+    	}
+    	printf("\n");
+
+    	return STATUS_SUCCESS;
 	}
 }
