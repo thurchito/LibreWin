@@ -154,6 +154,10 @@ typedef struct _SYSTEM_PERFORMANCE_INFORMATION {
     ULONG CcDataPages;
 } SYSTEM_PERFORMANCE_INFORMATION, *PSYSTEM_PERFORMANCE_INFORMATION;
 
+typedef struct _SYSTEM_POLICY_INFORMATION {
+    BYTE Reserved[16];  // opaque policy/kernel enforcement data
+} SYSTEM_POLICY_INFORMATION, *PSYSTEM_POLICY_INFORMATION;
+
 typedef struct _SYSTEM_SPECULATION_CONTROL_INFORMATION {
     struct {
         ULONG BpbEnabled : 1;
@@ -383,6 +387,21 @@ NTSTATUS NTAPI NtQuerySystemInformation(
             if (ReturnLength) *ReturnLength = sizeof(*sii);
             return STATUS_SUCCESS;
         }
+
+		case SystemPolicyInformation:
+		{
+   			PSYSTEM_POLICY_INFORMATION spi = (PSYSTEM_POLICY_INFORMATION)SystemInformation;
+
+    		if (SystemInformationLength < sizeof(*spi))
+        	return STATUS_INFO_LENGTH_MISMATCH;
+
+    		ZeroMemory(spi, sizeof(*spi));  // fill with safe dummy data
+
+    		DisplayMessage(&fname_struct, L"[SystemPolicyInformation] Queried (dummy policy data)");
+
+    		if (ReturnLength) *ReturnLength = sizeof(*spi);
+    		return STATUS_SUCCESS;
+		}
 
         default:
         {
