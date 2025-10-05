@@ -158,6 +158,11 @@ typedef struct _SYSTEM_POLICY_INFORMATION {
     BYTE Reserved[16];
 } SYSTEM_POLICY_INFORMATION, *PSYSTEM_POLICY_INFORMATION;
 
+typedef struct _SYSTEM_QUERY_PERFORMANCE_COUNTER_INFORMATION {
+    LARGE_INTEGER PerformanceCounter;
+    LARGE_INTEGER PerformanceFrequency;
+} SYSTEM_QUERY_PERFORMANCE_COUNTER_INFORMATION, *PSYSTEM_QUERY_PERFORMANCE_COUNTER_INFORMATION;
+
 typedef struct _SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION {
     LARGE_INTEGER IdleTime;
     LARGE_INTEGER KernelTime;
@@ -457,6 +462,25 @@ NTSTATUS NTAPI NtQuerySystemInformation(
 				*ReturnLength = nProcs * sizeof(SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION);
     		
 			return STATUS_SUCCESS;
+		}
+		
+		case SystemQueryPerformanceCounterInformation:
+		{
+    		if (SystemInformationLength < sizeof(SYSTEM_QUERY_PERFORMANCE_COUNTER_INFORMATION))
+        		return STATUS_INFO_LENGTH_MISMATCH;
+
+    		PSYSTEM_QUERY_PERFORMANCE_COUNTER_INFORMATION qpi =
+        		(PSYSTEM_QUERY_PERFORMANCE_COUNTER_INFORMATION)SystemInformation;
+
+    		qpi->PerformanceCounter.QuadPart = 1234567890;
+    		qpi->PerformanceFrequency.QuadPart = 10000000;
+
+    		DisplayMessage(&fname_struct, L"[SystemQueryPerformanceCounterInformation] Dummy performance counter filled");
+
+    		if (ReturnLength)
+        		*ReturnLength = sizeof(*qpi);
+
+    		return STATUS_SUCCESS;
 		}
 		
         default:
