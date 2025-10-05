@@ -231,132 +231,165 @@ int NtDisplayString(PUNICODE_STRING String)
     return 0;
 }
 
+UNICODE_STRING fname_struct;
+wchar_t fname_buffer[512];  // large enough for all messages
+fname_struct.Buffer = fname_buffer;
+fname_struct.Length = 0;
+fname_struct.MaximumLength = sizeof(fname_buffer);
+
+void SystemPrint(PUNICODE_STRING fname, const wchar_t* msg)
+{
+    size_t len = wcslen(msg);
+    if (len * sizeof(wchar_t) >= fname->MaximumLength)
+        len = (fname->MaximumLength / sizeof(wchar_t)) - 1;
+
+    wcsncpy(fname->Buffer, msg, len);
+    fname->Buffer[len] = L'\0';
+    fname->Length = (USHORT)(len * sizeof(wchar_t));
+
+    NtDisplayString(fname);
+}
+
 NTSTATUS NTAPI NtQuerySystemInformation(
     SYSTEM_INFORMATION_CLASS SystemInformationClass,
     PVOID                    SystemInformation,
     ULONG                    SystemInformationLength,
     PULONG                   ReturnLength
 ) {
-	if (!SystemInformation)
+    // Check for null pointer
+    if (!SystemInformation)
         return STATUS_INFO_LENGTH_MISMATCH;
-	
-    if (SystemInformationClass == SystemBasicInformation) {
-		unsigned int eax, ebx, ecx, edx;
-        unsigned int ProcessorCount = 0;
-        asm volatile (
-            "cpuid"
-            : "=a" (eax), "=b" (ebx), "=c" (ecx), "=d" (edx)
-            : "a" (0xB), "c" (0)
 
-		);
-    	ProcessorCount = ebx & 0xFF;
-    	SystemInformation = (PVOID)(uintptr_t)ProcessorCount;
-    }
-	if (SystemInformationClass == SystemCodeIntegrityInformation) {
-		SYSTEM_CODEINTEGRITY_INFORMATION* sci = (SYSTEM_CODEINTEGRITY_INFORMATION*)SystemInformation;
+    // Initialize UNICODE_STRING for output
+    UNICODE_STRING fname_struct;
+    wchar_t fname_buffer[512];  // enough space for all messages
+    fname_struct.Buffer = fname_buffer;
+    fname_struct.Length = 0;
+    fname_struct.MaximumLength = sizeof(fname_buffer);
 
-   		if (sci->Length < sizeof(SYSTEM_CODEINTEGRITY_INFORMATION))
-       		return STATUS_INFO_LENGTH_MISMATCH;
+    // Helper buffer for building messages
+    wchar_t buf[512];
 
-   		if (sci->CodeIntegrityOptions & CODEINTEGRITY_OPTION_ENABLED)
-   		{
-			return STATUS_SUCCESS;
-  		}
-    }
-	if (SystemInformationClass == SystemExceptionInformation) {
-    	PSYSTEM_EXCEPTION_INFORMATION sei = 
-        	(PSYSTEM_EXCEPTION_INFORMATION)SystemInformation;
+    // -----------------------------
+    // Handle each SystemInformationClass
+    // -----------------------------
+    switch (SystemInformationClass)
+    {
+        case SystemExceptionInformation:
+        {
+            PSYSTEM_EXCEPTION_INFORMATION sei = (PSYSTEM_EXCEPTION_INFORMATION)SystemInformation;
 
-    	if (sei == NULL || SystemInformationLength < sizeof(*sei))
-        	return STATUS_INFO_LENGTH_MISMATCH;
-
-    	for (int i = 0; i < 16; i++) {
-        	printf("%02X ", sei->Reserved1[i]);
-    	}
-    	printf("\n");
-
-    	return STATUS_SUCCESS;
-	}
-	if (SystemInformationClass == SystemInterruptInformation) {
-        PSYSTEM_INTERRUPT_INFORMATION sii =
-            (PSYSTEM_INTERRUPT_INFORMATION)SystemInformation;
-
-        printf("[SystemInterruptInformation]\n");
-        printf("ContextSwitches: %lu\n", sii->ContextSwitches);
-        printf("DpcCount:        %lu\n", sii->DpcCount);
-        printf("DpcRate:         %lu\n", sii->DpcRate);
-        printf("TimeIncrement:   %lu\n", sii->TimeIncrement);
-        printf("DpcBypassCount:  %lu\n", sii->DpcBypassCount);
-        printf("ApcBypassCount:  %lu\n", sii->ApcBypassCount);
-
-        return STATUS_SUCCESS;
-    }
-	if (SystemInformationClass == SystemKernelVaShadowInformation) {
-		SYSTEM_KERNEL_VA_SHADOW_INFORMATION* skvsi = (SYSTEM_KERNEL_VA_SHADOW_INFORMATION*)SystemInformation;
-		if (skvsi->Flags & KVA_SHADOW_ENABLED)
-        return KVA_SHADOW_ENABLED;
-		
-    	if (skvsi->Flags & KVA_SHADOW_REQUIRED)
-        return KVA_SHADOW_REQUIRED;
-		
-    	if (skvsi->Flags & KVA_SHADOW_REQUIRED_AVAILABLE)
-        return KVA_SHADOW_REQUIRED_AVAILABLE;
-		
-    	if (skvsi->Flags & KVA_SHADOW_PCID)
-        return KVA_SHADOW_PCID;
-		
-    	if (skvsi->Flags & KVA_SHADOW_INVPCID)
-        return KVA_SHADOW_INVPCID;
-		
-   		if (skvsi->Flags & KVA_L1TF_MITIGATION_PRESENT)
-        return KVA_L1TF_MITIGATION_PRESENT;
-		
-    	if (skvsi->Flags & KVA_L1D_FLUSH_SUPPORTED)
-        return KVA_L1D_FLUSH_SUPPORTED;
-	}
-	if (SystemInformationClass == SystemLeapSecondInformation) {
-    	PSYSTEM_LEAP_SECOND_INFORMATION lsi =
-        	(PSYSTEM_LEAP_SECOND_INFORMATION)SystemInformation;
-
-    	if (SystemInformationLength < sizeof(SYSTEM_LEAP_SECOND_INFORMATION))
-        	return STATUS_INFO_LENGTH_MISMATCH;
-
-    	printf("[SystemLeapSecondInformation]\n");
-    	printf("Raw data (16 bytes): ");
-    	for (int i = 0; i < sizeof(lsi->Reserved1); i++) {
- 	       printf("%02X ", lsi->Reserved1[i]);
-    	}
-    	printf("\n");
-
-    	return STATUS_SUCCESS;
-	}
-	if (SystemInformationClass == SystemLookasideInformation) {
-            printf("[SystemLookasideInformation] Queried (variable-length opaque data)\n");
-            if (ReturnLength) *ReturnLength = 0;
-            // Do not attempt to parse it — version-dependent
-            return STATUS_SUCCESS;
-    }
-	if (SystemInformationClass == SystemPerformanceInformation) {
-            if (SystemInformationLength < sizeof(SYSTEM_PERFORMANCE_INFORMATION))
+            if (SystemInformationLength < sizeof(*sei))
                 return STATUS_INFO_LENGTH_MISMATCH;
 
-            PSYSTEM_PERFORMANCE_INFORMATION spi =
-                (PSYSTEM_PERFORMANCE_INFORMATION)SystemInformation;
+            wchar_t hex[8];
+            wcscpy(buf, L"[SystemExceptionInformation] Raw data: ");
+            for (int i = 0; i < sizeof(sei->Reserved1); i++) {
+                swprintf(hex, 8, L"%02X ", sei->Reserved1[i]);
+                wcsncat(buf, hex, 512 - wcslen(buf) - 1);
+            }
+            SystemPrint(&fname_struct, buf);
+            if (ReturnLength) *ReturnLength = sizeof(*sei);
+            return STATUS_SUCCESS;
+        }
+
+        case SystemLeapSecondInformation:
+        {
+            PSYSTEM_LEAP_SECOND_INFORMATION lsi = (PSYSTEM_LEAP_SECOND_INFORMATION)SystemInformation;
+
+            if (SystemInformationLength < sizeof(*lsi))
+                return STATUS_INFO_LENGTH_MISMATCH;
+
+            wcscpy(buf, L"[SystemLeapSecondInformation] Raw data: ");
+            wchar_t hex[8];
+            for (int i = 0; i < sizeof(lsi->Reserved1); i++) {
+                swprintf(hex, 8, L"%02X ", lsi->Reserved1[i]);
+                wcsncat(buf, hex, 512 - wcslen(buf) - 1);
+            }
+            SystemPrint(&fname_struct, buf);
+            if (ReturnLength) *ReturnLength = sizeof(*lsi);
+            return STATUS_SUCCESS;
+        }
+
+        case SystemLookasideInformation:
+        {
+            SystemPrint(&fname_struct, L"[SystemLookasideInformation] Queried (opaque data)");
+            if (ReturnLength) *ReturnLength = 0;
+            return STATUS_SUCCESS;
+        }
+
+        case SystemCodeIntegrityInformation:
+        {
+            PSYSTEM_CODEINTEGRITY_INFORMATION sci = (PSYSTEM_CODEINTEGRITY_INFORMATION)SystemInformation;
+
+            if (SystemInformationLength < sizeof(*sci))
+                return STATUS_INFO_LENGTH_MISMATCH;
+
+            sci->Length = sizeof(*sci);
+            sci->CodeIntegrityOptions = CODEINTEGRITY_OPTION_ENABLED |
+                                        CODEINTEGRITY_OPTION_HVCI_KMCI_ENABLED;
+
+            swprintf(buf, 512, L"[SystemCodeIntegrityInformation] Flags: 0x%08lX", sci->CodeIntegrityOptions);
+            SystemPrint(&fname_struct, buf);
+
+            if (ReturnLength) *ReturnLength = sizeof(*sci);
+            return STATUS_SUCCESS;
+        }
+
+        case SystemKernelVaShadowInformation:
+        {
+            PSYSTEM_KERNEL_VA_SHADOW_INFORMATION skvsi = (PSYSTEM_KERNEL_VA_SHADOW_INFORMATION)SystemInformation;
+
+            if (SystemInformationLength < sizeof(*skvsi))
+                return STATUS_INFO_LENGTH_MISMATCH;
+
+            skvsi->Flags = KVA_SHADOW_ENABLED | KVA_SHADOW_PCID | KVA_L1TF_MITIGATION_PRESENT;
+
+            swprintf(buf, 512, L"[SystemKernelVaShadowInformation] Flags: 0x%08lX", skvsi->Flags);
+            SystemPrint(&fname_struct, buf);
+
+            if (ReturnLength) *ReturnLength = sizeof(*skvsi);
+            return STATUS_SUCCESS;
+        }
+
+        case SystemPerformanceInformation:
+        {
+            PSYSTEM_PERFORMANCE_INFORMATION spi = (PSYSTEM_PERFORMANCE_INFORMATION)SystemInformation;
+
+            if (SystemInformationLength < sizeof(*spi))
+                return STATUS_INFO_LENGTH_MISMATCH;
 
             ZeroMemory(spi, sizeof(*spi));
             spi->IdleTime.QuadPart = 12345678;
             spi->PageFaultCount = 42;
             spi->AvailablePages = 8192;
 
-            printf("[SystemPerformanceInformation]\n");
-            printf("  IdleTime: %lld\n", spi->IdleTime.QuadPart);
-            printf("  PageFaults: %lu\n", spi->PageFaultCount);
-            printf("  AvailablePages: %lu\n", spi->AvailablePages);
+            swprintf(buf, 512, L"[SystemPerformanceInformation] IdleTime: %lld, PageFaults: %lu, AvailablePages: %lu",
+                     spi->IdleTime.QuadPart, spi->PageFaultCount, spi->AvailablePages);
+            SystemPrint(&fname_struct, buf);
 
             if (ReturnLength) *ReturnLength = sizeof(*spi);
             return STATUS_SUCCESS;
+        }
+
+        case SystemInterruptInformation:
+        {
+            PSYSTEM_INTERRUPT_INFORMATION sii = (PSYSTEM_INTERRUPT_INFORMATION)SystemInformation;
+
+            swprintf(buf, 512, L"[SystemInterruptInformation] ContextSwitches=%lu, DpcCount=%lu, DpcRate=%lu, TimeIncrement=%lu, DpcBypassCount=%lu, ApcBypassCount=%lu",
+                     sii->ContextSwitches, sii->DpcCount, sii->DpcRate, sii->TimeIncrement, sii->DpcBypassCount, sii->ApcBypassCount);
+            SystemPrint(&fname_struct, buf);
+
+            if (ReturnLength) *ReturnLength = sizeof(*sii);
+            return STATUS_SUCCESS;
+        }
+
+        default:
+        {
+            swprintf(buf, 512, L"[NtQuerySystemInformation] Unsupported class: %lu", SystemInformationClass);
+            SystemPrint(&fname_struct, buf);
+            return STATUS_INVALID_INFO_CLASS;
+        }
     }
-	printf("[NtQuerySystemInformation] Unsupported class: %lu\n",
-    	SystemInformationClass);
-    return STATUS_INVALID_INFO_CLASS;
 }
+
