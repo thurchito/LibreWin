@@ -302,20 +302,20 @@ NTSTATUS NTAPI NtQuerySystemInformation(
     {
         case SystemExceptionInformation:
         {
-			wchar_t hex[8];
-			wcscpy(buf, L"[SystemExceptionInformation] Raw data: ");
-			for (size_t i = 0; i < sizeof(sei->Reserved1); ++i) {
-    			unsigned char v;
-    			asm volatile("movb %1, %0"
-                	: "=r"(v)
-                	: "m"(*(volatile unsigned char *)((char *)sei->Reserved1 + i))
-                	: "memory");
-    			swprintf(hex, 8, L"%02X ", (unsigned int)v);
-    			wcsncat(buf, hex, 512 - wcslen(buf) - 1);
-			}
-			SystemPrint(&fname_struct, buf);
-			if (ReturnLength) *ReturnLength = sizeof(*sei);
-			return STATUS_SUCCESS;
+            PSYSTEM_EXCEPTION_INFORMATION sei = (PSYSTEM_EXCEPTION_INFORMATION)SystemInformation;
+
+            if (SystemInformationLength < sizeof(*sei))
+                return STATUS_INFO_LENGTH_MISMATCH;
+
+            wchar_t hex[8];
+            wcscpy(buf, L"[SystemExceptionInformation] Raw data: ");
+            for (int i = 0; i < sizeof(sei->Reserved1); i++) {
+                swprintf(hex, 8, L"%02X ", sei->Reserved1[i]);
+                wcsncat(buf, hex, 512 - wcslen(buf) - 1);
+            }
+            SystemPrint(&fname_struct, buf);
+            if (ReturnLength) *ReturnLength = sizeof(*sei);
+            return STATUS_SUCCESS;
         }
 
         case SystemLeapSecondInformation:
