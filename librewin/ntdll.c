@@ -206,6 +206,7 @@ typedef struct _SYSTEM_TIMEOFDAY_INFORMATION {
     ULONG Reserved[3]; // padding/opaque data
 } SYSTEM_TIMEOFDAY_INFORMATION, *PSYSTEM_TIMEOFDAY_INFORMATION;
 
+typedef LONG NTSTATUS;
 SYSTEM_INFORMATION_CLASS SystemInformationClass;
 PVOID SystemInformation;
 ULONG SystemInformationLength;
@@ -213,6 +214,29 @@ PULONG ReturnLength;
 SYSTEM_BASIC_INFORMATION sbi;
 ULONG len;
 ULONG sbisize = sizeof(sbi);
+
+NTSTATUS NTAPI NtAcceptConnectPort(
+    PHANDLE PortHandle,
+    PVOID PortContext,
+    PPORT_MESSAGE ConnectionRequest,
+    BOOLEAN AcceptConnection,
+    PVOID* WriteSection,
+    PVOID* ReadSection
+) {
+    NTSTATUS status;
+    __asm {
+        mov eax, SYS_NTAcceptConnectPort
+        mov ecx, WriteSection
+        push AcceptConnection
+        push ConnectionRequest
+        push PortContext
+        push PortHandle
+        int 0x2e
+        mov status, eax
+        add esp, 16
+    }
+    return status;
+}
 
 int NtDisplayString(PUNICODE_STRING String);
 
