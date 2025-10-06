@@ -359,30 +359,24 @@ NTSTATUS NTAPI NtQuerySystemInformation(
     		return STATUS_SUCCESS;
 		}
 
+
         case SystemCodeIntegrityInformation:
-		{
-    		PSYSTEM_CODEINTEGRITY_INFORMATION sci =
-        		(PSYSTEM_CODEINTEGRITY_INFORMATION)SystemInformation;
+        {
+            PSYSTEM_CODEINTEGRITY_INFORMATION sci = (PSYSTEM_CODEINTEGRITY_INFORMATION)SystemInformation;
 
-    		if (SystemInformationLength < sizeof(*sci))
-        		return STATUS_INFO_LENGTH_MISMATCH;
+            if (SystemInformationLength < sizeof(*sci))
+                return STATUS_INFO_LENGTH_MISMATCH;
 
-    		sci->Length = sizeof(*sci);
-    		sci->CodeIntegrityOptions = CODEINTEGRITY_OPTION_ENABLED |
-            	CODEINTEGRITY_OPTION_HVCI_KMCI_ENABLED;
+            sci->Length = sizeof(*sci);
+            sci->CodeIntegrityOptions = CODEINTEGRITY_OPTION_ENABLED |
+                                        CODEINTEGRITY_OPTION_HVCI_KMCI_ENABLED;
 
-    		unsigned long v;
-    		asm volatile("movl %1, %0"
-            	: "=r"(v)
-            	: "m"(*(volatile unsigned long *)&sci->CodeIntegrityOptions)
-            	: "memory");
+            swprintf(buf, 512, L"[SystemCodeIntegrityInformation] Flags: 0x%08lX", sci->CodeIntegrityOptions);
+            SystemPrint(&fname_struct, buf);
 
-    		swprintf(buf, 512, L"[SystemCodeIntegrityInformation] Flags (probed): 0x%08lX", v);
-    		SystemPrint(&fname_struct, buf);
-
-    		if (ReturnLength) *ReturnLength = sizeof(*sci);
-    			return STATUS_SUCCESS;
-		}
+            if (ReturnLength) *ReturnLength = sizeof(*sci);
+            return STATUS_SUCCESS;
+        }
 
         case SystemKernelVaShadowInformation:
         {
