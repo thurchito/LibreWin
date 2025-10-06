@@ -337,11 +337,28 @@ NTSTATUS NTAPI NtQuerySystemInformation(
         }
 
         case SystemLookasideInformation:
-        {
-            SystemPrint(&fname_struct, L"[SystemLookasideInformation] Queried (opaque data)");
-            if (ReturnLength) *ReturnLength = 0;
-            return STATUS_SUCCESS;
-        }
+		{
+    		wchar_t hex[8];
+    		wcscpy(buf, L"[SystemLookasideInformation] Raw data: ");
+    		size_t space_for_bytes = (512 - wcslen(buf) - 1) / 3;
+    		size_t probe_len = (SystemInformationLength == 0) ? 0 :
+            	((size_t)SystemInformationLength < space_for_bytes ? (size_t)SystemInformationLength : space_for_bytes);
+    
+			for (size_t i = 0; i < probe_len; ++i) {
+				unsigned char v;
+        		asm volatile("movb %1, %0"
+                	: "=r"(v)
+                	: "m"(*(volatile unsigned char *)((char *)SystemInformation + i))
+                	: "memory");
+        		swprintf(hex, 8, L"%02X ", (unsigned int)v);
+        		wcsncat(buf, hex, 512 - wcslen(buf) - 1);
+    		}
+			
+    		SystemPrint(&fname_struct, buf);
+    		if (ReturnLength) *ReturnLength = (ULONG)probe_len;
+    		return STATUS_SUCCESS;
+		}
+
 
         case SystemCodeIntegrityInformation:
         {
