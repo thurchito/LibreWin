@@ -289,6 +289,8 @@ NTSTATUS NTAPI NtAcceptConnectPort(
 }
 #endif
 
+#define SYS_NtAccessCheck 0x123
+
 NTSTATUS NTAPI NtAccessCheck(
     PSECURITY_DESCRIPTOR SecurityDescriptor,
     HANDLE ClientToken,
@@ -301,21 +303,37 @@ NTSTATUS NTAPI NtAccessCheck(
 ) {
     NTSTATUS status;
 
-    asm volatile (
-        "mov eax, SYS_NtAccessCheck\n\t"
-        "push AccessStatus\n\t"
-        "push GrantedAccess\n\t"
-        "push PrivilegeSetLength\n\t"
-        "push Privileges\n\t"
-        "push GenericMapping\n\t"
-        "push DesiredAccess\n\t"
-        "push ClientToken\n\t"
-        "push SecurityDescriptor\n\t"
+    uint32_t sd = (uint32_t)(uintptr_t)SecurityDescriptor;
+    uint32_t token = (uint32_t)(uintptr_t)ClientToken;
+    uint32_t access = (uint32_t)DesiredAccess;
+    uint32_t mapping = (uint32_t)(uintptr_t)GenericMapping;
+    uint32_t priv = (uint32_t)(uintptr_t)Privileges;
+    uint32_t privLen = (uint32_t)(uintptr_t)PrivilegeSetLength;
+    uint32_t granted = (uint32_t)(uintptr_t)GrantedAccess;
+    uint32_t statusPtr = (uint32_t)(uintptr_t)AccessStatus;
+
+    asm volatile(
+        "mov $0x123, %%eax\n\t"
+        "push %8\n\t"
+        "push %7\n\t"
+        "push %6\n\t"
+        "push %5\n\t"
+        "push %4\n\t"
+        "push %3\n\t"
+        "push %2\n\t"
+        "push %1\n\t"
         "int $0x2e\n\t"
-        "mov %0, eax\n\t"
-        : "=r"(status)
-        :
-        : "%eax"
+        "add $32, %%esp\n\t"
+        : "=a"(status)
+        : "m"(sd),
+          "m"(token),
+          "m"(access),
+          "m"(mapping),
+          "m"(priv),
+          "m"(privLen),
+          "m"(granted),
+          "m"(statusPtr)
+        : "memory", "cc"
     );
 
     return status;
