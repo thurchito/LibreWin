@@ -264,7 +264,7 @@ NTSTATUS NTAPI NtAcceptConnectPort(
     BOOLEAN AcceptConnection, PVOID* WriteSection, PVOID* ReadSection)
 {
     NTSTATUS status;
-    unsigned int accept_val = (unsigned int)AcceptConnection;  // Cast to 32-bit for full-word push
+    unsigned int accept_val = (unsigned int)AcceptConnection;
 
     asm volatile (
         "push %[rsec]\n\t"
@@ -273,7 +273,7 @@ NTSTATUS NTAPI NtAcceptConnectPort(
         "push %[creq]\n\t"
         "push %[pctx]\n\t"
         "push %[ph]\n\t"
-        "mov $0x60, %%eax\n\t"  // Syscall number (e.g., 0x02 for Windows 10 x86; confirm for your target Windows version)
+        "mov $0x60, %%eax\n\t"
         "int $0x2e\n\t"
         "add $24, %%esp\n\t"
         : "=a" (status)
@@ -288,6 +288,38 @@ NTSTATUS NTAPI NtAcceptConnectPort(
     return status;
 }
 #endif
+
+NTSTATUS NTAPI NtAccessCheck(
+    PSECURITY_DESCRIPTOR SecurityDescriptor,
+    HANDLE ClientToken,
+    ACCESS_MASK DesiredAccess,
+    PGENERIC_MAPPING GenericMapping,
+    PRIVILEGE_SET* Privileges,
+    ULONG* PrivilegeSetLength,
+    PULONG GrantedAccess,
+    BOOLEAN* AccessStatus
+) {
+    NTSTATUS status;
+
+    asm volatile (
+        "mov eax, SYS_NtAccessCheck\n\t"
+        "push AccessStatus\n\t"
+        "push GrantedAccess\n\t"
+        "push PrivilegeSetLength\n\t"
+        "push Privileges\n\t"
+        "push GenericMapping\n\t"
+        "push DesiredAccess\n\t"
+        "push ClientToken\n\t"
+        "push SecurityDescriptor\n\t"
+        "int $0x2e\n\t"
+        "mov %0, eax\n\t"
+        : "=r"(status)
+        :
+        : "%eax"
+    );
+
+    return status;
+}
 
 int NtDisplayString(PUNICODE_STRING String);
 
