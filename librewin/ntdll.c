@@ -18,8 +18,45 @@ Abstract:
 --*/
 
 #include <windows.h>
+#include <stdint.h>
 #include <stdio.h>
 #include "basetsd.h"
+
+typedef long NTSTATUS;
+#ifndef STATUS_SUCCESS
+#define STATUS_SUCCESS ((NTSTATUS)0x00000000)
+#endif
+#ifndef STATUS_INFO_LENGTH_MISMATCH
+#define STATUS_INFO_LENGTH_MISMATCH ((NTSTATUS)0xC0000004)
+#endif
+#ifndef STATUS_INVALID_INFO_CLASS
+#define STATUS_INVALID_INFO_CLASS ((NTSTATUS)0xC0000003)
+#endif
+#ifndef STATUS_INSUFFICIENT_RESOURCES
+#define STATUS_INSUFFICIENT_RESOURCES ((NTSTATUS)0xC000009A)
+#endif
+#ifndef STATUS_CONNECTION_REFUSED
+#define STATUS_CONNECTION_REFUSED ((NTSTATUS)0xC0000232)
+#endif
+#ifndef STATUS_ACCESS_DENIED
+#define STATUS_ACCESS_DENIED ((NTSTATUS)0xC0000022)
+#endif
+
+typedef struct _PORT_MESSAGE {
+    USHORT DataLength;
+    USHORT TotalLength;
+    USHORT Type;
+    USHORT DataInfoOffset;
+    ULONG  ClientId;
+    ULONG  MessageId;
+} PORT_MESSAGE, *PPORT_MESSAGE;
+
+typedef struct _SYSTEM_EXCEPTION_INFORMATION SYSTEM_EXCEPTION_INFORMATION, *PSYSTEM_EXCEPTION_INFORMATION;
+typedef struct _SYSTEM_LEAP_SECOND_INFORMATION SYSTEM_LEAP_SECOND_INFORMATION, *PSYSTEM_LEAP_SECOND_INFORMATION;
+typedef struct _SYSTEM_LOOKASIDE_INFORMATION SYSTEM_LOOKASIDE_INFORMATION, *PSYSTEM_LOOKASIDE_INFORMATION;
+typedef struct _SYSTEM_POLICY_INFORMATION SYSTEM_POLICY_INFORMATION, *PSYSTEM_POLICY_INFORMATION;
+typedef struct _SYSTEM_QUERY_PERFORMANCE_COUNTER_INFORMATION SYSTEM_QUERY_PERFORMANCE_COUNTER_INFORMATION, *PSYSTEM_QUERY_PERFORMANCE_COUNTER_INFORMATION;
+typedef struct _SYSTEM_SPECULATION_CONTROL_INFORMATION SYSTEM_SPECULATION_CONTROL_INFORMATION, *PSYSTEM_SPECULATION_CONTROL_INFORMATION;
 
 typedef struct _SYSTEM_BASIC_INFORMATION {
     ULONG Reserved;
@@ -57,7 +94,13 @@ typedef enum _SYSTEM_INFORMATION_CLASS {
     SystemInterruptInformation = 23,
     SystemExceptionInformation = 33,
     SystemRegistryQuotaInformation = 37,
-    SystemLookasideInformation = 45
+    SystemLookasideInformation = 45,
+
+    SystemLeapSecondInformation = 46,
+    SystemPolicyInformation = 47,
+    SystemQueryPerformanceCounterInformation = 48,
+    SystemSpeculationControlInformation = 49,
+
 } SYSTEM_INFORMATION_CLASS;
 
 typedef struct _SYSTEM_INTERRUPT_INFORMATION {
@@ -224,17 +267,26 @@ NTSTATUS NTAPI NtAcceptConnectPort(
     PVOID* ReadSection
 ) {
     NTSTATUS status;
-    __asm {
-        mov eax, SYS_NTAcceptConnectPort
-        mov ecx, WriteSection
-        push AcceptConnection
-        push ConnectionRequest
-        push PortContext
-        push PortHandle
-        int 0x2e
-        mov status, eax
-        add esp, 16
-    }
+
+    register NTSTATUS eax_reg asm("eax");
+    eax_reg = 0x1234;
+
+    asm volatile (
+        "push %[accept_connection]\n\t"
+        "push %[connection_request]\n\t"
+        "push %[port_context]\n\t"
+        "push %[port_handle]\n\t"
+        "int $0x2e\n\t"
+        "add $16, %%esp\n\t"
+        : "=a"(status)
+        : [accept_connection] "r"(AcceptConnection),
+          [connection_request] "r"(ConnectionRequest),
+          [port_context] "r"(PortContext),
+          [port_handle] "r"(PortHandle),
+          "a"(eax_reg)
+        : "memory"
+    );
+
     return status;
 }
 
@@ -267,7 +319,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
     return TRUE;
 }
 
-__declspec(dllexport) int AddNumbers(int a, int b) {
+int AddNumbers(int a, int b) {
     return a + b;
 }
 
@@ -285,11 +337,12 @@ int NtDisplayString(PUNICODE_STRING String)
     return 0;
 }
 
-UNICODE_STRING fname_struct;
 wchar_t fname_buffer[512];
-fname_struct.Buffer = fname_buffer;
-fname_struct.Length = 0;
-fname_struct.MaximumLength = sizeof(fname_buffer);
+UNICODE_STRING fname_struct = {
+    .Length = 0,
+    .MaximumLength = sizeof(fname_buffer),
+    .Buffer = fname_buffer
+};
 
 void SystemPrint(PUNICODE_STRING fname, const wchar_t* msg)
 {
@@ -315,7 +368,6 @@ NTSTATUS NTAPI NtQuerySystemInformation(
         return STATUS_INFO_LENGTH_MISMATCH;
 
     UNICODE_STRING fname_struct;
-    wchar_t fname_buffer[512];
     fname_struct.Buffer = fname_buffer;
     fname_struct.Length = 0;
     fname_struct.MaximumLength = sizeof(fname_buffer);
@@ -442,7 +494,7 @@ NTSTATUS NTAPI NtQuerySystemInformation(
 
     		ZeroMemory(spi, sizeof(*spi));
 
-    		DisplayMessage(&fname_struct, L"[SystemPolicyInformation] Queried (dummy policy data)");
+    		SystemPrint(&fname_struct, L"[SystemPolicyInformation] Queried (dummy policy data)");
 
     		if (ReturnLength) *ReturnLength = sizeof(*spi);
     		return STATUS_SUCCESS;
@@ -465,7 +517,7 @@ NTSTATUS NTAPI NtQuerySystemInformation(
     		procInfo->ImageName.Length = (USHORT)(wcslen(dummyName) * sizeof(wchar_t));
     		procInfo->ImageName.MaximumLength = sizeof(dummyName);
 
-    		DisplayMessage(&fname_struct, L"[SystemProcessInformation] Single dummy process entry filled");
+    		SystemPrint(&fname_struct, L"[SystemProcessInformation] Single dummy process entry filled");
 
     		if (ReturnLength) *ReturnLength = sizeof(SYSTEM_BASICPROCESS_INFORMATION);
     		return STATUS_SUCCESS;
@@ -492,14 +544,14 @@ NTSTATUS NTAPI NtQuerySystemInformation(
         		ppi[i].InterruptCount = 100 + i;
     		}
 
-    		DisplayMessage(&fname_struct, L"[SystemProcessorPerformanceInformation] Dummy CPU stats filled");
+    		SystemPrint(&fname_struct, L"[SystemProcessorPerformanceInformation] Dummy CPU stats filled");
 
     		if (ReturnLength)
 				*ReturnLength = nProcs * sizeof(SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION);
-    		
+
 			return STATUS_SUCCESS;
 		}
-		
+
 		case SystemQueryPerformanceCounterInformation:
 		{
     		if (SystemInformationLength < sizeof(SYSTEM_QUERY_PERFORMANCE_COUNTER_INFORMATION))
@@ -511,7 +563,7 @@ NTSTATUS NTAPI NtQuerySystemInformation(
     		qpi->PerformanceCounter.QuadPart = 1234567890;
     		qpi->PerformanceFrequency.QuadPart = 10000000;
 
-    		DisplayMessage(&fname_struct, L"[SystemQueryPerformanceCounterInformation] Dummy performance counter filled");
+    		SystemPrint(&fname_struct, L"[SystemQueryPerformanceCounterInformation] Dummy performance counter filled");
 
     		if (ReturnLength)
         		*ReturnLength = sizeof(*qpi);
@@ -529,7 +581,7 @@ NTSTATUS NTAPI NtQuerySystemInformation(
 
     		ZeroMemory(rqi, sizeof(*rqi));
 
-    		DisplayMessage(&fname_struct, L"[SystemRegistryQuotaInformation] Queried (dummy data)");
+    		SystemPrint(&fname_struct, L"[SystemRegistryQuotaInformation] Queried (dummy data)");
 
     		if (ReturnLength)
         		*ReturnLength = sizeof(*rqi);
@@ -552,7 +604,7 @@ NTSTATUS NTAPI NtQuerySystemInformation(
 
     		sci->SpeculationControlFlags.Reserved = 0;
 
-    		DisplayMessage(&fname_struct, L"[SystemSpeculationControlInformation] Dummy speculative execution flags set");
+    		SystemPrint(&fname_struct, L"[SystemSpeculationControlInformation] Dummy speculative execution flags set");
 
     		if (ReturnLength)
         		*ReturnLength = sizeof(*sci);
@@ -575,7 +627,7 @@ NTSTATUS NTAPI NtQuerySystemInformation(
     		for (int i = 0; i < 3; i++)
     		tdi->Reserved[i] = 0;
 
-    		DisplayMessage(&fname_struct, L"[SystemTimeOfDayInformation] Dummy system time filled");
+    		SystemPrint(&fname_struct, L"[SystemTimeOfDayInformation] Dummy system time filled");
 
     		if (ReturnLength)
         		*ReturnLength = sizeof(*tdi);
