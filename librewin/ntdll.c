@@ -258,37 +258,36 @@ SYSTEM_BASIC_INFORMATION sbi;
 ULONG len;
 ULONG sbisize = sizeof(sbi);
 
+#if defined(__i386__)
 NTSTATUS NTAPI NtAcceptConnectPort(
-    PHANDLE PortHandle,
-    PVOID PortContext,
-    PPORT_MESSAGE ConnectionRequest,
-    BOOLEAN AcceptConnection,
-    PVOID* WriteSection,
-    PVOID* ReadSection
-) {
+    PHANDLE PortHandle, PVOID PortContext, PPORT_MESSAGE ConnectionRequest,
+    BOOLEAN AcceptConnection, PVOID* WriteSection, PVOID* ReadSection)
+{
     NTSTATUS status;
-
-    register NTSTATUS eax_reg asm("eax");
-    eax_reg = 0x1234;
+    unsigned int accept_val = (unsigned int)AcceptConnection;  // Cast to 32-bit for full-word push
 
     asm volatile (
-        "push %[accept_connection]\n\t"
-        "push %[connection_request]\n\t"
-        "push %[port_context]\n\t"
-        "push %[port_handle]\n\t"
+        "push %[rsec]\n\t"
+        "push %[wsec]\n\t"
+        "push %[accept]\n\t"
+        "push %[creq]\n\t"
+        "push %[pctx]\n\t"
+        "push %[ph]\n\t"
+        "mov $0x60, %%eax\n\t"  // Syscall number (e.g., 0x02 for Windows 10 x86; confirm for your target Windows version)
         "int $0x2e\n\t"
-        "add $16, %%esp\n\t"
-        : "=a"(status)
-        : [accept_connection] "r"(AcceptConnection),
-          [connection_request] "r"(ConnectionRequest),
-          [port_context] "r"(PortContext),
-          [port_handle] "r"(PortHandle),
-          "a"(eax_reg)
-        : "memory"
+        "add $24, %%esp\n\t"
+        : "=a" (status)
+        : [ph] "r" (PortHandle),
+          [pctx] "r" (PortContext),
+          [creq] "r" (ConnectionRequest),
+          [accept] "m" (accept_val),
+          [wsec] "r" (WriteSection),
+          [rsec] "r" (ReadSection)
+        : "memory", "cc"
     );
-
     return status;
 }
+#endif
 
 int NtDisplayString(PUNICODE_STRING String);
 
