@@ -2,8 +2,14 @@
 #define WINAPI __stdcall
 #define APIENTRY WINAPI
 #define CALLBACK __stdcall
-#define STATUS_SUCCESS              ((NTSTATUS)0x00000000L)
+
+#ifndef STATUS_SUCCESS
+#define STATUS_SUCCESS ((NTSTATUS)0x00000000L)
+#endif
+
+#ifndef STATUS_INFO_LENGTH_MISMATCH
 #define STATUS_INFO_LENGTH_MISMATCH ((NTSTATUS)0xC0000004L)
+#endif
 
 #define SystemCodeIntegrityInformation 103
 #define SystemKernelVaShadowInformation 196
@@ -28,12 +34,6 @@
 #define KVA_L1TF_MITIGATION_PRESENT           0x00002000
 #define CONST const
 #define VOID void
-
-typedef struct _UNICODE_STRING {
-  USHORT  Length;
-  USHORT  MaximumLength;
-PWSTR  Buffer;
-} UNICODE_STRING;
 
 typedef UNICODE_STRING *PUNICODE_STRING;
 typedef const UNICODE_STRING *PCUNICODE_STRING;
