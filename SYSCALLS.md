@@ -1,6 +1,6 @@
 # LibreWin Syscall Table
 
-A table of all current system calls for NT 4.0 implemented in LibreWin.
+A table of all current system calls for Windows 2000 implemented in LibreWin.
 
 *SYSCALL.md template by blobii*
 
