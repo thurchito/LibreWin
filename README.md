@@ -9,7 +9,7 @@
 >This is free software and comes with ABSOLUTELY NO WARRANTY!
 
 # Status
-We are currently forking a pre-existing kernel called ["Uinxed"](https://github.com/ViudiraTech/Uinxed-Kernel) and we will implement our current existing NT Executive Layer Implementation to the fork. The kernel is stable and has many features, we have decided it is better than building our own kernel from the ground up.
+We are currently working on porting all Windows 2000 system calls!
 
 # Minimum System Requirements
 - i386 CPU
