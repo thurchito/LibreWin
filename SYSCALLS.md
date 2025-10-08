@@ -24,6 +24,7 @@ Look up the syscall in the table you want to use and follow it like this:
 |NtAccessCheck    |Used by server applications to check connections to object for client token.    |0x123    |null    |null    |null    |null    |null    |null
 |NtAccessCheckAndAuditAlarm|Determines whether a security descriptor grants a specified set of access rights to the client being impersonated by the calling thread.|0x0001|null|null|null|null|null|null
 |NtAccessCheckByType    |Determines whether a security descriptor grants a specified set of access rights to the client identified by an access token.|0x0002|null|null|null|null|null|null
+|NtAccessCheckByTypeAndAuditAlarm|Refer to NtAccessCheckAndAuditAlarm.|0x0003|null|null|null|null|null|null
 |NtDisplayString|Displays string {ebx} in text mode. (Typically crash screen)       |0x2e      |PUNICODE_STRING        |null      |null      |null      |null      |null|
 |NtOpenFile     |Opens {ebx} file with {ecx} access, {edx} object attributes, {esi} I/O Status Block, {edi} sharing access, and {ebp} Open Options|0x4f|PHANDLE|INT|POBJECT_ATTRIBUTES|PVOID|ULONG|ULONG|
 |NtQuerySystemInformation|Returns requested system information. ⚠️*Warning:* It does not probe for BIOS/general system info. The function returns default safe values.    |0xB    |PUNICODE_STRING    |0x0    |0x10000000    |null    |null    |null|
