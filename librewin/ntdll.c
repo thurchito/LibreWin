@@ -24,6 +24,7 @@ Abstract:
 
 #define SYS_NtAccessCheckAndAuditAlarm 0x0001
 #define SYS_NtAccessCheckByType 0x0002
+#define SYS_NtAccessCheckByTypeAndAuditAlarm 0x0003
 
 typedef long NTSTATUS;
 #ifndef STATUS_SUCCESS
@@ -495,6 +496,71 @@ NTSTATUS NTAPI NtAccessCheckByType(
 }
 #endif
 
+NTSTATUS NTAPI NtAccessCheckByTypeAndAuditAlarm(
+    PUNICODE_STRING SubsystemName,
+    PVOID HandleId,
+    PUNICODE_STRING ObjectTypeName,
+    PUNICODE_STRING ObjectName,
+    PSECURITY_DESCRIPTOR SecurityDescriptor,
+    PSID PrincipalSelfSid,
+    ACCESS_MASK DesiredAccess,
+    AUDIT_EVENT_TYPE AuditType,
+    ULONG Flags,
+    POBJECT_TYPE_LIST ObjectTypeList,
+    ULONG ObjectTypeListLength,
+    PGENERIC_MAPPING GenericMapping,
+    BOOLEAN ObjectCreation,
+    PULONG GrantedAccess,
+    PBOOLEAN AccessStatus,
+    PBOOLEAN GenerateOnClose
+) {
+    NTSTATUS status;
+
+    asm volatile (
+        "mov eax, %1\n\t"
+        "push %16\n\t"  // GenerateOnClose
+        "push %15\n\t"  // AccessStatus
+        "push %14\n\t"  // GrantedAccess
+        "push %13\n\t"  // ObjectCreation
+        "push %12\n\t"  // GenericMapping
+        "push %11\n\t"  // ObjectTypeListLength
+        "push %10\n\t"  // ObjectTypeList
+        "push %9\n\t"   // Flags
+        "push %8\n\t"   // AuditType
+        "push %7\n\t"   // DesiredAccess
+        "push %6\n\t"   // PrincipalSelfSid
+        "push %5\n\t"   // SecurityDescriptor
+        "push %4\n\t"   // ObjectName
+        "push %3\n\t"   // ObjectTypeName
+        "push %2\n\t"   // HandleId
+        "push %0\n\t"   // SubsystemName
+        "int $0x2e\n\t"
+        "mov %0, eax\n\t"
+        "add esp, 64\n\t"  // 16 * 4 bytes = 64
+        : "=r"(status)
+        : "r"(SYS_NtAccessCheckByTypeAndAuditAlarm),
+          "r"(HandleId),
+          "r"(ObjectTypeName),
+          "r"(ObjectName),
+          "r"(SecurityDescriptor),
+          "r"(PrincipalSelfSid),
+          "r"(DesiredAccess),
+          "r"(AuditType),
+          "r"(Flags),
+          "r"(ObjectTypeList),
+          "r"(ObjectTypeListLength),
+          "r"(GenericMapping),
+          "r"(ObjectCreation),
+          "r"(GrantedAccess),
+          "r"(AccessStatus),
+          "r"(GenerateOnClose),
+          "0"(status)
+        : "eax", "memory"
+    );
+
+    return status;
+}
+
 int NtDisplayString(PUNICODE_STRING String);
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved)
@@ -848,6 +914,7 @@ NTSTATUS NTAPI NtQuerySystemInformation(
         }
     }
 }
+
 
 
 
