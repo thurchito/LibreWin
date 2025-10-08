@@ -19,122 +19,86 @@ Abstract:
 #ifndef NTDLL_H
 #define NTDLL_H
 
-#include <windows.h>
-#include "base.h"
-#include "basetsd.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-void NtDisplayString(PUNICODE_STRING string)
+#include "base.h"
+#include "basetsd.h"  
+
+#if defined(__i386__)
+
+#define SYSCALL_NtDisplayString      0x2E
+#define SYSCALL_NtOpenFile           0x4F
+#define SYSCALL_NtAcceptConnectPort  0x60
+
+static inline void NtDisplayString(PUNICODE_STRING String)
 {
-    __asm__ __volatile__(
-        "movl %0, %%eax\n\t"    // Load syscall number for NtDisplayString (0x25) into EAX
-        "movl %1, %%ebx\n\t"    // Load the pointer to the string into EBX
-        "int $0x2E\n\t"         // Trigger the syscall interrupt
+    asm volatile(
+        "int $0x2E"
         :
-        : "r"(0x002e), "r"(string)
-        : "eax", "ebx"
+        : "a"(SYSCALL_NtDisplayString),
+          "b"(String)
+        : "memory"
     );
 }
 
-int NtOpenFile(
+static inline NTSTATUS NtOpenFile(
     PHANDLE FileHandle,
     int DesiredAccess,
     POBJECT_ATTRIBUTES ObjectAttributes,
     PVOID IoStatusBlock,
     ULONG ShareAccess,
-    ULONG OpenOptions
-)
+    ULONG OpenOptions)
 {
-    int syscallResult = 0;
-
+    NTSTATUS status;
     asm volatile(
-        "mov $0x004f, %%eax\n"
-        "mov %1, %%edx\n"
-        "int $0x2e\n"
-        "mov %%eax, %0\n"
-        : "=r" (syscallResult)
-        : "r" (ObjectAttributes)
-        : "eax", "edx"
+        "int $0x2E"
+        : "=a"(status)
+        : "a"(SYSCALL_NtOpenFile),
+          "b"(FileHandle),
+          "c"(DesiredAccess),
+          "d"(ObjectAttributes),
+          "S"(IoStatusBlock),
+          "D"(ShareAccess),
+          "b"(FileHandle),
+          "B"(FileHandle)
+        : "ebp", "memory"
     );
-
-    return syscallResult;
+    return status;
 }
 
-NTSTATUS NtAcceptConnectPort(
+static inline NTSTATUS NtAcceptConnectPort(
     PHANDLE PortHandle,
     PVOID PortContext,
-    PPORT_MESSAGE ConnectionRequest,
+    PVOID ConnectionRequest,
     BOOLEAN AcceptConnection,
-    PPORT_SECTION_WRITE* WriteSectionOut,
-    PPORT_SECTION_READ* ReadSectionOut
-)
+    PVOID WriteSectionOut,
+    PVOID ReadSectionOut)
 {
-    NTSTATUS status = STATUS_UNSUCCESSFUL;
-    PPORT_OBJECT serverPort;
-    PCONNECTION_REQUEST pendingReq;
-    LOCK_PORT(serverPort);
-
-    pendingReq = LookupPendingRequestLocked(serverPort, ConnectionRequest->ConnectionId);
-    if (!pendingReq) {
-        UNLOCK_PORT(serverPort);
-        return STATUS_INVALID_PARAMETER;
-    }
-
-    if (!AcceptConnection) {
-        RemovePendingRequestLocked(serverPort, pendingReq);
-        pendingReq->state = CONNECTION_REFUSED;
-        WakeClientOfRequest(pendingReq, STATUS_CONNECTION_REFUSED);
-        DerefAndFreePendingRequest(pendingReq);
-        UNLOCK_PORT(serverPort);
-        return STATUS_CONNECTION_REFUSED;
-    }
-
-    status = PerformSecurityAcceptChecks(serverPort, pendingReq);
-    if (!NT_SUCCESS(status)) {
-        RemovePendingRequestLocked(serverPort, pendingReq);
-        WakeClientOfRequest(pendingReq, status);
-        DerefAndFreePendingRequest(pendingReq);
-        UNLOCK_PORT(serverPort);
-        return status;
-    }
-
-    connection = CreateConnectionLocked(serverPort, pendingReq);
-    if (!connection) {
-        RemovePendingRequestLocked(serverPort, pendingReq);
-        WakeClientOfRequest(pendingReq, STATUS_INSUFFICIENT_RESOURCES);
-        UNLOCK_PORT(serverPort);
-        return STATUS_INSUFFICIENT_RESOURCES;
-    }
-
-    if (pendingReq->RequestedSection) {
-        status = SetupSectionMappings(connection, pendingReq, WriteSectionOut, ReadSectionOut);
-        if (!NT_SUCCESS(status)) {
-            DestroyConnection(connection);
-            RemovePendingRequestLocked(serverPort, pendingReq);
-            WakeClientOfRequest(pendingReq, status);
-            UNLOCK_PORT(serverPort);
-            return status;
-        }
-    }
-
-    connection->ServerContext = PortContext;
-
-    LinkConnectionIntoPortLocked(serverPort, connection);
-    RemovePendingRequestLocked(serverPort, pendingReq);
-    pendingReq->state = CONNECTION_ACCEPTED;
-    WakeClientOfRequest(pendingReq, STATUS_SUCCESS);
-
-    if (PortHandle) {
-        *PortHandle = CreateHandleForConnection(currentProcess, connection, DESIRED_ACCESS);
-        if (!IS_VALID_HANDLE(*PortHandle)) {
-            UnlinkConnection(serverPort, connection);
-            DestroyConnection(connection);
-            UNLOCK_PORT(serverPort);
-            return STATUS_INSUFFICIENT_RESOURCES;
-        }
-    }
-
-    UNLOCK_PORT(serverPort);
-    return STATUS_SUCCESS;
+    NTSTATUS status;
+    asm volatile(
+        "int $0x2E"
+        : "=a"(status)
+        : "a"(SYSCALL_NtAcceptConnectPort),
+          "b"(PortHandle),
+          "c"(PortContext),
+          "d"(ConnectionRequest),
+          "S"(AcceptConnection),
+          "D"(WriteSectionOut),
+          "b"(ReadSectionOut)
+        : "ebp", "memory"
+    );
+    return status;
 }
 
+#else
+#error "LibreWin syscall wrappers only implemented for x86 (int 0x2E interface)"
+#endif /* __i386__ */
+
+#ifdef __cplusplus
+}
 #endif
+
+#endif /* NTDLL_H */
+
