@@ -22,6 +22,8 @@ Abstract:
 #include <stdio.h>
 #include "basetsd.h"
 
+#define SYS_NtAccessCheckAndAuditAlarm 0x0011
+
 typedef long NTSTATUS;
 #ifndef STATUS_SUCCESS
 #define STATUS_SUCCESS ((NTSTATUS)0x00000000)
@@ -334,6 +336,56 @@ NTSTATUS NTAPI NtAccessCheck(
           "m"(granted),
           "m"(statusPtr)
         : "memory", "cc"
+    );
+
+    return status;
+}
+
+NTSTATUS NTAPI NtAccessCheckAndAuditAlarm(
+    PUNICODE_STRING SubsystemName,
+    PVOID HandleId,
+    PUNICODE_STRING ObjectTypeName,
+    PUNICODE_STRING ObjectName,
+    PSECURITY_DESCRIPTOR SecurityDescriptor,
+    ACCESS_MASK DesiredAccess,
+    PGENERIC_MAPPING GenericMapping,
+    BOOLEAN ObjectCreation,
+    PULONG GrantedAccess,
+    PBOOLEAN AccessStatus,
+    PBOOLEAN GenerateOnClose
+) {
+    NTSTATUS status;
+
+    asm volatile(
+        "mov eax, %1\n\t"          // syscall number
+        "push %11\n\t"             // GenerateOnClose
+        "push %10\n\t"             // AccessStatus
+        "push %9\n\t"              // GrantedAccess
+        "push %8\n\t"              // ObjectCreation
+        "push %7\n\t"              // GenericMapping
+        "push %6\n\t"              // DesiredAccess
+        "push %5\n\t"              // SecurityDescriptor
+        "push %4\n\t"              // ObjectName
+        "push %3\n\t"              // ObjectTypeName
+        "push %2\n\t"              // HandleId
+        "push %0\n\t"              // SubsystemName
+        "int $0x2e\n\t"
+        "mov %0, eax\n\t"          // store return in status
+        "add esp, 44\n\t"          // cleanup 11 args × 4 bytes
+        : "=r"(status)
+        : "r"(SYS_NtAccessCheckAndAuditAlarm),
+          "r"(HandleId),
+          "r"(ObjectTypeName),
+          "r"(ObjectName),
+          "r"(SecurityDescriptor),
+          "r"(DesiredAccess),
+          "r"(GenericMapping),
+          "r"(ObjectCreation),
+          "r"(GrantedAccess),
+          "r"(AccessStatus),
+          "r"(GenerateOnClose),
+          "0"(status)
+        : "eax"
     );
 
     return status;
@@ -692,4 +744,5 @@ NTSTATUS NTAPI NtQuerySystemInformation(
         }
     }
 }
+
 
