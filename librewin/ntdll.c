@@ -358,36 +358,36 @@ NTSTATUS NTAPI NtAccessCheckAndAuditAlarm(
 ) {
     NTSTATUS status;
 
-    asm volatile(
-        "mov eax, %1\n\t"          // syscall number
-        "push %11\n\t"             // GenerateOnClose
-        "push %10\n\t"             // AccessStatus
-        "push %9\n\t"              // GrantedAccess
-        "push %8\n\t"              // ObjectCreation
-        "push %7\n\t"              // GenericMapping
-        "push %6\n\t"              // DesiredAccess
-        "push %5\n\t"              // SecurityDescriptor
-        "push %4\n\t"              // ObjectName
-        "push %3\n\t"              // ObjectTypeName
-        "push %2\n\t"              // HandleId
-        "push %0\n\t"              // SubsystemName
+    __asm__ volatile (
+        "push %[GenerateOnClose]\n\t"
+        "push %[AccessStatus]\n\t"
+        "push %[GrantedAccess]\n\t"
+        "push %[ObjectCreation]\n\t"
+        "push %[GenericMapping]\n\t"
+        "push %[DesiredAccess]\n\t"
+        "push %[SecurityDescriptor]\n\t"
+        "push %[ObjectName]\n\t"
+        "push %[ObjectTypeName]\n\t"
+        "push %[HandleId]\n\t"
+        "push %[SubsystemName]\n\t"
+        "mov eax, %[Syscall]\n\t"
         "int $0x2e\n\t"
-        "mov %0, eax\n\t"          // store return in status
-        "add esp, 44\n\t"          // cleanup 11 args × 4 bytes
-        : "=r"(status)
-        : "r"(SYS_NtAccessCheckAndAuditAlarm),
-          "r"(HandleId),
-          "r"(ObjectTypeName),
-          "r"(ObjectName),
-          "r"(SecurityDescriptor),
-          "r"(DesiredAccess),
-          "r"(GenericMapping),
-          "r"(ObjectCreation),
-          "r"(GrantedAccess),
-          "r"(AccessStatus),
-          "r"(GenerateOnClose),
-          "0"(status)
-        : "eax"
+        "add esp, 44\n\t"  // 11 args * 4 bytes each
+        "mov %[Status], eax\n\t"
+        : [Status] "=r"(status)
+        : [Syscall] "i"(SYS_NtAccessCheckAndAuditAlarm),
+          [SubsystemName] "r"(SubsystemName),
+          [HandleId] "r"(HandleId),
+          [ObjectTypeName] "r"(ObjectTypeName),
+          [ObjectName] "r"(ObjectName),
+          [SecurityDescriptor] "r"(SecurityDescriptor),
+          [DesiredAccess] "r"(DesiredAccess),
+          [GenericMapping] "r"(GenericMapping),
+          [ObjectCreation] "r"(ObjectCreation),
+          [GrantedAccess] "r"(GrantedAccess),
+          [AccessStatus] "r"(AccessStatus),
+          [GenerateOnClose] "r"(GenerateOnClose)
+        : "eax", "memory"
     );
 
     return status;
@@ -914,6 +914,7 @@ NTSTATUS NTAPI NtQuerySystemInformation(
         }
     }
 }
+
 
 
 
