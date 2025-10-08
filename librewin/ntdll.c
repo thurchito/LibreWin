@@ -22,7 +22,8 @@ Abstract:
 #include <stdio.h>
 #include "basetsd.h"
 
-#define SYS_NtAccessCheckAndAuditAlarm 0x0011
+#define SYS_NtAccessCheckAndAuditAlarm 0x0001
+#define SYS_NtAccessCheckByType 0x0002
 
 typedef long NTSTATUS;
 #ifndef STATUS_SUCCESS
@@ -391,6 +392,109 @@ NTSTATUS NTAPI NtAccessCheckAndAuditAlarm(
     return status;
 }
 
+#if defined(__i386__)
+NTSTATUS NTAPI NtAccessCheckByType(
+    PSECURITY_DESCRIPTOR SecurityDescriptor,
+    PSID PrincipalSelfSid,
+    HANDLE ClientToken,
+    ACCESS_MASK DesiredAccess,
+    POBJECT_TYPE_LIST TypeList,
+    ULONG TypeListLength,
+    PGENERIC_MAPPING GenericMapping,
+    PPRIVILEGE_SET Privileges,
+    PULONG PrivilegeSetLength,
+    PULONG GrantedAccess,
+    PBOOLEAN AccessStatus
+) {
+    NTSTATUS status;
+
+    /* Push args (reverse) and int 0x2e. Keep operands as inputs ("r"). */
+    asm volatile (
+        "mov eax, %1\n\t"     /* syscall number */
+        "push %11\n\t"        /* AccessStatus */
+        "push %10\n\t"        /* GrantedAccess */
+        "push %9\n\t"         /* PrivilegeSetLength */
+        "push %8\n\t"         /* Privileges */
+        "push %7\n\t"         /* GenericMapping */
+        "push %6\n\t"         /* TypeListLength */
+        "push %5\n\t"         /* TypeList */
+        "push %4\n\t"         /* DesiredAccess */
+        "push %3\n\t"         /* ClientToken */
+        "push %2\n\t"         /* PrincipalSelfSid */
+        "push %0\n\t"         /* SecurityDescriptor */
+        "int $0x2e\n\t"
+        "mov %0, eax\n\t"
+        "add esp, 44\n\t"     /* 11 args * 4 bytes = 44 */
+        : "=r"(status)
+        : "r"(SYS_NtAccessCheckByType),
+          "r"(PrincipalSelfSid),
+          "r"(ClientToken),
+          "r"(DesiredAccess),
+          "r"(TypeList),
+          "r"(TypeListLength),
+          "r"(GenericMapping),
+          "r"(Privileges),
+          "r"(PrivilegeSetLength),
+          "r"(GrantedAccess),
+          "r"(AccessStatus),
+          "0"(status)
+        : "eax", "memory"
+    );
+
+    return status;
+}
+#endif
+
+#if defined(__x86_64__)
+NTSTATUS NTAPI NtAccessCheckByType(
+    PSECURITY_DESCRIPTOR SecurityDescriptor,
+    PSID PrincipalSelfSid,
+    HANDLE ClientToken,
+    ACCESS_MASK DesiredAccess,
+    POBJECT_TYPE_LIST TypeList,
+    ULONG TypeListLength,
+    PGENERIC_MAPPING GenericMapping,
+    PPRIVILEGE_SET Privileges,
+    PULONG PrivilegeSetLength,
+    PULONG GrantedAccess,
+    PBOOLEAN AccessStatus
+) {
+    uint64_t status;
+    const uint64_t syscall_number = 0x1234; /* replace */
+
+    /* Bind registers: RCX, RDX, R8, R9 are first four args on Windows x64
+       Put next arguments on the stack in order. */
+    register uint64_t rcx_reg asm("rcx") = (uint64_t)SecurityDescriptor;      // arg1
+    register uint64_t rdx_reg asm("rdx") = (uint64_t)PrincipalSelfSid;       // arg2
+    register uint64_t r8_reg  asm("r8")  = (uint64_t)ClientToken;            // arg3
+    register uint64_t r9_reg  asm("r9")  = (uint64_t)DesiredAccess;          // arg4
+
+    /* For remaining args, place into stack prior to syscall. Some kernels expect
+       user mode syscall wrappers that place them appropriately. */
+    register uint64_t r10_reg asm("r10") = (uint64_t)TypeList; /* r10 commonly used by syscall */
+    register uint64_t rax_reg asm("rax") = syscall_number;    /* syscall number in rax */
+
+    asm volatile (
+        "push %10\n\t"    /* TypeListLength */
+        "push %9\n\t"     /* GenericMapping */
+        "push %8\n\t"     /* Privileges */
+        "push %7\n\t"     /* PrivilegeSetLength */
+        "push %6\n\t"     /* GrantedAccess */
+        "push %5\n\t"     /* AccessStatus */
+        "syscall\n\t"
+        "mov %0, rax\n\t"
+        "add $48, %%rsp\n\t" /* cleanup: 6 * 8 = 48 bytes pushed */
+        : "=r"(status)
+        : "r"(rax_reg), "r"(rcx_reg), "r"(rdx_reg), "r"(r8_reg), "r"(r9_reg),
+          "r"(AccessStatus), "r"(GrantedAccess), "r"(PrivilegeSetLength),
+          "r"(Privileges), "r"(GenericMapping), "r"(TypeListLength)
+        : "rcx", "rdx", "r8", "r9", "r11", "memory"
+    );
+
+    return (NTSTATUS)status;
+}
+#endif
+
 int NtDisplayString(PUNICODE_STRING String);
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved)
@@ -744,5 +848,6 @@ NTSTATUS NTAPI NtQuerySystemInformation(
         }
     }
 }
+
 
 
