@@ -9,7 +9,8 @@
 >This is free software and comes with ABSOLUTELY NO WARRANTY!
 
 # Status
-We are currently working on porting all Windows 2000 system calls!
+I'm currently working on porting all Windows 2000 system calls!
+**⚠️ Info:** The current OS image implements stubs of NT API functions and therefore does NOT boot just yet. I'm working to resolve that.
 
 # Minimum System Requirements
 - i386 CPU
