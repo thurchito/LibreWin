@@ -83,8 +83,8 @@ typedef struct _PORT_MESSAGE {
 
 typedef struct _CONNECTION_REQUEST {
     unsigned long ConnectionId;
-    void* RequestedSection;   // section pointer
-    int state;                // CONNECTION_REFUSED / CONNECTION_ACCEPTED
+    void* RequestedSection;
+    int state;
 } CONNECTION_REQUEST, *PCONNECTION_REQUEST;
 
 typedef struct _CONNECTION {
@@ -92,8 +92,5 @@ typedef struct _CONNECTION {
     void* ClientContext;
 } CONNECTION, *PCONNECTION;
 
-// States
-#define CONNECTION_REFUSED   0
 #define CONNECTION_ACCEPTED  1
-
-#endif // _NTSTATUS_H
+#endif
