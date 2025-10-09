@@ -60,8 +60,19 @@ typedef long LPARAM;
 typedef long LRESULT;
 #endif
 
-#endif /* BASETSD_H */
-
 typedef UNICODE_STRING *PUNICODE_STRING;
 typedef const UNICODE_STRING *PCUNICODE_STRING;
 typedef LONGLONG USN;
+
+#ifndef _NTSTATUS_H
+#define _NTSTATUS_H
+
+typedef long NTSTATUS;
+
+#define NT_SUCCESS(Status) ((NTSTATUS)(Status) >= 0)
+
+#define STATUS_UNSUCCESSFUL              ((NTSTATUS)0xC0000001L)
+#define STATUS_CONNECTION_REFUSED        ((NTSTATUS)0xC0000236L)
+#define STATUS_INSUFFICIENT_RESOURCES    ((NTSTATUS)0xC000009AL)
+
+#endif // _NTSTATUS_H
