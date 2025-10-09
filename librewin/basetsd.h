@@ -49,8 +49,6 @@ typedef unsigned long ULONG_PTR;
 typedef unsigned long DWORD_PTR;
 typedef unsigned long SIZE_T;
 typedef signed long   SSIZE_T;
-typedef unsigned long UINT_PTR;
-typedef long          INT_PTR;
 #endif
 
 #ifndef WPARAM
