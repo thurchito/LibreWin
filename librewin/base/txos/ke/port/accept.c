@@ -2,11 +2,107 @@
    Kernel-side implementation of NtAcceptConnectPort (LPC accept).
 */
 
+#include <stddef.h>
 #include "port.h"
 #include "../base.h"
 #include "../basetsd.h"
 #include "../task/process.h"
-#include <stddef.h>
+#include "../ntdll.h"
+
+
+int IS_VALID_HANDLE(PHANDLE h)
+{
+    return (h != (PHANDLE)0 && h != NULL);
+}
+
+PPORT_OBJECT PortObjectFromHandle(PHANDLE h)
+{
+    static PORT_OBJECT default_port;
+    (void)h;
+    return &default_port;
+}
+
+void LOCK_PORT(PPORT_OBJECT Port)   { (void)Port; }
+void UNLOCK_PORT(PPORT_OBJECT Port) { (void)Port; }
+
+static CONNECTION_REQUEST _stub_pending_req = {
+    .ConnectionId = 1,
+    .RequestedSection = NULL,
+    .state = 0
+};
+
+PCONNECTION_REQUEST LookupPendingRequestLocked(PPORT_OBJECT Port, ULONG ConnectionId)
+{
+    (void)Port;
+    (void)ConnectionId;
+    return &_stub_pending_req;
+}
+
+void RemovePendingRequestLocked(PPORT_OBJECT Port, PCONNECTION_REQUEST Req)
+{
+    (void)Port; (void)Req;
+}
+
+void WakeClientOfRequest(PCONNECTION_REQUEST Req, NTSTATUS Status)
+{
+    (void)Req; (void)Status;
+}
+
+void DerefAndFreePendingRequest(PCONNECTION_REQUEST Req)
+{
+    (void)Req;
+}
+
+NTSTATUS PerformSecurityAcceptChecks(PPORT_OBJECT Port, PCONNECTION_REQUEST Req)
+{
+    (void)Port; (void)Req;
+    return STATUS_SUCCESS;
+}
+
+static CONNECTION _stub_connection = {
+    .ServerContext = NULL,
+    .ClientContext = NULL
+};
+
+PCONNECTION CreateConnectionLocked(PPORT_OBJECT Port, PCONNECTION_REQUEST Req)
+{
+    (void)Port; (void)Req;
+    return &_stub_connection;
+}
+
+void DestroyConnection(PCONNECTION Conn)
+{
+    (void)Conn;
+}
+
+NTSTATUS SetupSectionMappings(PCONNECTION Conn, PCONNECTION_REQUEST Req, PVOID *WriteOut, PVOID *ReadOut)
+{
+    (void)Conn; (void)Req;
+    if (WriteOut) *WriteOut = NULL;
+    if (ReadOut)  *ReadOut  = NULL;
+    return STATUS_SUCCESS;
+}
+
+void LinkConnectionIntoPortLocked(PPORT_OBJECT Port, PCONNECTION Conn)
+{
+    (void)Port; (void)Conn;
+}
+
+void UnlinkConnection(PPORT_OBJECT Port, PCONNECTION Conn)
+{
+    (void)Port; (void)Conn;
+}
+
+PHANDLE CreateHandleForConnection(void *Process, PCONNECTION Conn, ULONG DesiredAccess)
+{
+    (void)Process; (void)Conn; (void)DesiredAccess;
+    return (PHANDLE)(uintptr_t)0x1001;
+}
+
+void *GetCurrentProcess(void)
+{
+    return NULL;
+}
 
 NTSTATUS NtAcceptConnectPort(
     PHANDLE PortHandle,
