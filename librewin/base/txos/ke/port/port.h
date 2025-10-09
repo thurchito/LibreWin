@@ -40,4 +40,7 @@ void *GetCurrentProcess(void);
 
 PPORT_OBJECT PortObjectFromHandle(PHANDLE h);
 
+static PORT_OBJECT default_port_storage;
+static PPORT_OBJECT default_port = &default_port_storage;
+
 #endif /* KE_PORT_PORT_H */
