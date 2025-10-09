@@ -1,3 +1,6 @@
+#ifndef BASETSD_H
+#define BASETSD_H
+
 #define _MSC_VER 1200
 #define WINAPI __stdcall
 #define APIENTRY WINAPI
@@ -34,6 +37,30 @@
 #define KVA_L1TF_MITIGATION_PRESENT           0x00002000
 #define CONST const
 #define VOID void
+
+#ifndef _BASETSD_INTTYPES_DEFINED
+#define _BASETSD_INTTYPES_DEFINED
+typedef unsigned long ULONG_PTR;
+typedef unsigned long DWORD_PTR;
+typedef unsigned long SIZE_T;
+typedef signed long   SSIZE_T;
+typedef unsigned long UINT_PTR;
+typedef long          INT_PTR;
+#endif
+
+#ifndef WPARAM
+typedef unsigned int WPARAM;
+#endif
+
+#ifndef LPARAM
+typedef long LPARAM;
+#endif
+
+#ifndef LRESULT
+typedef long LRESULT;
+#endif
+
+#endif /* BASETSD_H */
 
 typedef UNICODE_STRING *PUNICODE_STRING;
 typedef const UNICODE_STRING *PCUNICODE_STRING;
