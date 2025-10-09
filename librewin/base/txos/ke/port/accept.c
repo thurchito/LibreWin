@@ -9,16 +9,17 @@
 #include "../task/process.h"
 #include "../ntdll.h"
 
-int IS_VALID_HANDLE(PHANDLE h)
-{
-    return (h != (PHANDLE)0 && h != NULL);
-}
+static void* default_port = (void*)0x1000;
 
 PPORT_OBJECT PortObjectFromHandle(PHANDLE h)
 {
-    static PORT_OBJECT default_port;
     (void)h;
-    return &default_port;
+    return (PPORT_OBJECT)default_port;
+}
+
+int IS_VALID_HANDLE(PHANDLE h)
+{
+    return (h != (PHANDLE)0 && h != NULL);
 }
 
 void LOCK_PORT(PPORT_OBJECT Port)   { (void)Port; }
