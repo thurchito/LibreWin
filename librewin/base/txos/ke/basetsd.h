@@ -75,4 +75,25 @@ typedef LONGLONG USN;
 #define STATUS_CONNECTION_REFUSED        ((NTSTATUS)0xC0000236L)
 #define STATUS_INSUFFICIENT_RESOURCES    ((NTSTATUS)0xC000009AL)
 
+typedef struct _PORT_MESSAGE {
+    unsigned long Length;
+    unsigned long ConnectionId;
+    void* Data;
+} PORT_MESSAGE, *PPORT_MESSAGE;
+
+typedef struct _CONNECTION_REQUEST {
+    unsigned long ConnectionId;
+    void* RequestedSection;   // section pointer
+    int state;                // CONNECTION_REFUSED / CONNECTION_ACCEPTED
+} CONNECTION_REQUEST, *PCONNECTION_REQUEST;
+
+typedef struct _CONNECTION {
+    void* ServerContext;
+    void* ClientContext;
+} CONNECTION, *PCONNECTION;
+
+// States
+#define CONNECTION_REFUSED   0
+#define CONNECTION_ACCEPTED  1
+
 #endif // _NTSTATUS_H
