@@ -68,30 +68,6 @@ static inline NTSTATUS NtOpenFile(
     return status;
 }
 
-static inline NTSTATUS NtAcceptConnectPort(
-    PHANDLE PortHandle,
-    PVOID PortContext,
-    PVOID ConnectionRequest,
-    BOOLEAN AcceptConnection,
-    PVOID WriteSectionOut,
-    PVOID ReadSectionOut)
-{
-    NTSTATUS status;
-    asm volatile(
-        "int $0x2E"
-        : "=a"(status)
-        : "a"(SYSCALL_NtAcceptConnectPort),
-          "b"(PortHandle),
-          "c"(PortContext),
-          "d"(ConnectionRequest),
-          "S"(AcceptConnection),
-          "D"(WriteSectionOut),
-          "b"(ReadSectionOut)
-        : "ebp", "memory"
-    );
-    return status;
-}
-
 #else
 #error "LibreWin syscall wrappers only implemented for x86 (int 0x2E interface)"
 #endif /* __i386__ */
