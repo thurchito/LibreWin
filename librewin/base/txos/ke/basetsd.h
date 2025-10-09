@@ -64,6 +64,8 @@ typedef UNICODE_STRING *PUNICODE_STRING;
 typedef const UNICODE_STRING *PCUNICODE_STRING;
 typedef LONGLONG USN;
 
+#endif
+
 #ifndef _NTSTATUS_H
 #define _NTSTATUS_H
 
