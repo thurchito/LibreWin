@@ -5,7 +5,6 @@
 #include "../ke/port/port.h"
 #include "../ke/base.h"
 #include "../ke/basetsd.h"
-#include "../ke/handle/handle.h"
 #include "../ke/process/process.h"
 #include <stddef.h>
 
