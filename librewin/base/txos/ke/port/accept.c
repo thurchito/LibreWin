@@ -9,7 +9,6 @@
 #include "../task/process.h"
 #include "../ntdll.h"
 
-
 int IS_VALID_HANDLE(PHANDLE h)
 {
     return (h != (PHANDLE)0 && h != NULL);
