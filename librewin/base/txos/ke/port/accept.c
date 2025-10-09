@@ -2,10 +2,10 @@
    Kernel-side implementation of NtAcceptConnectPort (LPC accept).
 */
 
-#include "../ke/port/port.h"
-#include "../ke/base.h"
-#include "../ke/basetsd.h"
-#include "../ke/task/process.h"
+#include "port.h"
+#include "../base.h"
+#include "../basetsd.h"
+#include "../task/process.h"
 #include <stddef.h>
 
 NTSTATUS NtAcceptConnectPort(
