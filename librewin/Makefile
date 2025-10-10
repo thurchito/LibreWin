@@ -2,23 +2,13 @@ FILES = ./build/kernel.asm.o ./build/kernel.o ./build/loader.o ./build/user.asm.
 INCLUDES = -I./base/txos
 FLAGS = -v -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-unused-variable -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc -B/usr/local/bin/i686-elf-
 all: ./bin/boot.bin ./bin/kernel.bin
-	rm -rf ./bin/os.bin
-	dd if=./bin/boot.bin >> ./bin/os.bin
-	dd if=./bin/kernel.bin >> ./bin/os.bin
-	dd if=/dev/zero bs=1048576 count=16 >> ./bin/os.bin
-	# Copy files to the OS image
-	sudo mkdir /mnt/z
-	sudo mount -t vfat ./bin/os.bin /mnt/z
-	sudo cp ./boot.ini /mnt/z
-	sudo cp ./font.psf /mnt/z
-	sudo cp ./open.exe /mnt/z
-	sudo cp ./hello.exe /mnt/z
-	sudo cp ./stop.exe /mnt/z
-	sudo cp ./librever.exe /mnt/z
-	sudo cp ./reboot.exe /mnt/z
-	sudo cp ./test.bat /mnt/z
-	sudo cp ./bsod.exe /mnt/z
-	sudo cp ./lsbin.exe /mnt/z
+	rm -f ./bin/os.bin
+	dd if=/dev/zero of=./bin/os.bin bs=1M count=16
+	dd if=./bin/boot.bin of=./bin/os.bin conv=notrunc
+	mkfs.vfat -F 16 ./bin/os.bin
+	sudo mkdir -p /mnt/z
+	sudo mount -o loop ./bin/os.bin /mnt/z
+	sudo cp ./boot.ini ./font.psf ./open.exe ./hello.exe ./stop.exe ./librever.exe ./reboot.exe ./test.bat ./bsod.exe ./lsbin.exe /mnt/z/
 	sudo umount /mnt/z
 	sudo rm -rf /mnt/z
 ./bin/kernel.bin: $(FILES)
