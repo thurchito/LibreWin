@@ -22,9 +22,9 @@ Abstract:
 #include <stdio.h>
 #include "basetsd.h"
 
-#define SYS_NtAccessCheckAndAuditAlarm 0x0001
-#define SYS_NtAccessCheckByType 0x0002
-#define SYS_NtAccessCheckByTypeAndAuditAlarm 0x0003
+#define SYS_NtAccessCheckAndAuditAlarm 0x0002
+#define SYS_NtAccessCheckByType 0x0003
+#define SYS_NtAccessCheckByTypeAndAuditAlarm 0x0004
 
 typedef long NTSTATUS;
 #ifndef STATUS_SUCCESS
@@ -277,8 +277,8 @@ NTSTATUS NTAPI NtAcceptConnectPort(
         "push %[creq]\n\t"
         "push %[pctx]\n\t"
         "push %[ph]\n\t"
-        "mov $0x60, %%eax\n\t"
-        "int $0x2e\n\t"
+        "mov $0x0000, %%eax\n\t"
+        "int $0x002e\n\t"
         "add $24, %%esp\n\t"
         : "=a" (status)
         : [ph] "r" (PortHandle),
@@ -293,7 +293,7 @@ NTSTATUS NTAPI NtAcceptConnectPort(
 }
 #endif
 
-#define SYS_NtAccessCheck 0x123
+#define SYS_NtAccessCheck 0x0001
 
 NTSTATUS NTAPI NtAccessCheckAndAuditAlarm(
     PUNICODE_STRING SubsystemName,
@@ -337,7 +337,7 @@ NTSTATUS NTAPI NtAccessCheckAndAuditAlarm(
         "push %1\n\t"   // HandleId
         "push %0\n\t"   // SubsystemName
         "mov %11, %%eax\n\t"  // Syscall number
-        "int $0x2e\n\t"
+        "int $0x002e\n\t"
         "add $44, %%esp\n\t"  // 11 * 4 = 44
         : "=a"(status)
         : "m"(subName), "m"(hId), "m"(objType), "m"(objName), "m"(secDesc),
@@ -395,7 +395,7 @@ NTSTATUS NTAPI NtAccessCheckByType(
         "push %1\n\t"   // PrincipalSelfSid
         "push %0\n\t"   // SecurityDescriptor
         "mov %11, %%eax\n\t"
-        "int $0x2e\n\t"
+        "int $0x002e\n\t"
         "add $44, %%esp\n\t"
         : "=a"(status)
         : "m"(secDesc), "m"(prinSid), "m"(clToken), "m"(desAccess), "m"(typList),
@@ -514,7 +514,7 @@ NTSTATUS NTAPI NtAccessCheckByTypeAndAuditAlarm(
         "push %1\n\t"   // HandleId
         "push %0\n\t"   // SubsystemName
         "mov %16, %%eax\n\t"
-        "int $0x2e\n\t"
+        "int $0x002e\n\t"
         "add $64, %%esp\n\t"  // 16 * 4 = 64
         : "=a"(status)
         : "m"(subName), "m"(hId), "m"(objType), "m"(objName), "m"(secDesc),
@@ -571,7 +571,7 @@ int NtDisplayString(PUNICODE_STRING String)
 	asm volatile (
 					"movl $0x002e, %%eax\n\t"
 					"movl %0, %%ebx\n\t"
-					"int $0x2e\n\t"
+					"int $0x002e\n\t"
 					:
 					: "r"(String)
 					: "%eax", "%ebx"

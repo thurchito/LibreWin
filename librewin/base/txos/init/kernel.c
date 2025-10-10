@@ -504,7 +504,7 @@ void NsExec(char *ex_buffer, int isBat)
             asm volatile (
                     "movl $0x02, %%eax\n\t"
                     "movl %0, %%ebx\n\t"
-                    "int $0x2e\n\t"
+                    "int $0x002e\n\t"
                     "mov %%eax, %0\n"
                     : "=r" (syscallResult)
                     : "r"(ex_buffer)
@@ -531,7 +531,7 @@ void NsExec(char *ex_buffer, int isBat)
             asm volatile (
                     "movl $0x04, %%eax\n\t"
                     "movl %0, %%ebx\n\t"
-                    "int $0x2e\n\t"
+                    "int $0x002e\n\t"
                     "mov %%eax, %0\n"
                     : "=r" (syscallResult)
                     : "r"(ex_buffer)

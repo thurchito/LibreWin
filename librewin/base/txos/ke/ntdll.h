@@ -24,18 +24,18 @@ extern "C" {
 #endif
 
 #include "base.h"
-#include "basetsd.h"  
+#include "basetsd.h"
 
 #if defined(__i386__)
 
-#define SYSCALL_NtDisplayString      0x2E
-#define SYSCALL_NtOpenFile           0x4F
+#define SYSCALL_NtDisplayString      0x002e
+#define SYSCALL_NtOpenFile           0x004f
 #define SYSCALL_NtAcceptConnectPort  0x60
 
 static inline void NtDisplayString(PUNICODE_STRING String)
 {
     asm volatile(
-        "int $0x2E"
+        "int $0x002e"
         :
         : "a"(SYSCALL_NtDisplayString),
           "b"(String)
@@ -53,7 +53,7 @@ static inline NTSTATUS NtOpenFile(
 {
     NTSTATUS status;
     asm volatile(
-        "int $0x2E"
+        "int $0x002e"
         : "=a"(status)
         : "a"(SYSCALL_NtOpenFile),
           "b"(FileHandle),
@@ -69,7 +69,7 @@ static inline NTSTATUS NtOpenFile(
 }
 
 #else
-#error "LibreWin syscall wrappers only implemented for x86 (int 0x2E interface)"
+#error "LibreWin syscall wrappers only implemented for x86 (int 0x002e interface)"
 #endif /* __i386__ */
 
 #ifdef __cplusplus

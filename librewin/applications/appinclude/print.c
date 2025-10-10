@@ -21,7 +21,7 @@ NTSTATUS NtDisplayString(PUNICODE_STRING String)
 	asm volatile (
 					"movl $0x002e, %%eax\n\t"
 					"movl %0, %%ebx\n\t"
-					"int $0x2e\n\t"
+					"int $0x002e\n\t"
 					:
 					: "r"(String)
 					: "%eax", "%ebx"

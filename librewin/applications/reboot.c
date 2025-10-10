@@ -29,7 +29,7 @@ void _start()
     __asm__ __volatile__(
         "mov %1, %%eax\n"
         "mov %2, %%ebx\n"
-        "int $0x2e\n"
+        "int $0x002e\n"
         "mov %%eax, %0\n"
         : "=r"(status)
         : "r"(syscall_number), "r"(shutdown_action)

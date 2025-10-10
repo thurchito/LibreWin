@@ -51,7 +51,7 @@ void _start()
 	asm volatile(
         "mov $0x004f, %%eax\n"
         "mov %1, %%edx\n"
-        "int $0x2e\n"
+        "int $0x002e\n"
         "mov %%eax, %0\n"
         : "=r" (syscallResult)
         : "r" (objAttrs)
@@ -86,7 +86,7 @@ int NtOpenFile(
 	asm volatile(
         "mov $0x004f, %%eax\n"
         "mov %1, %%edx\n"
-        "int $0x2e\n"
+        "int $0x002e\n"
         "mov %%eax, %0\n"
         : "=r" (r)
         : "r" (ObjectAttributes)

@@ -29,7 +29,7 @@ void _start()
     __asm__ __volatile__(
         "mov %1, %%eax\n"  // Load syscall number into EAX
         "mov %2, %%ebx\n"  // Load shutdown action into EBX
-        "int $0x2e\n"      // Trigger interrupt 0x2e
+        "int $0x002e\n"      // Trigger interrupt 0x002e
         "mov %%eax, %0\n"  // Store the return status in 'status'
         : "=r"(status)     // Output operand
         : "r"(syscall_number), "r"(shutdown_action) // Input operands

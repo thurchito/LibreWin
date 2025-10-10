@@ -350,7 +350,7 @@ void idt_init()
 		idt_set(i, no_interrupt);
 	}
 
-    idt_set(0x2E, int2eh);
+    idt_set(0x002e, int2eh);
 
     idt_set(0, idt_zero);
     idt_set(14, idt_pf);
