@@ -2,10 +2,9 @@ FILES = ./build/kernel.asm.o ./build/kernel.o ./build/loader.o ./build/user.asm.
 INCLUDES = -I./base/txos
 FLAGS = -v -g -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -Wno-unused-function -fno-builtin -Werror -Wno-unused-label -Wno-unused-variable -Wno-cpp -Wno-unused-parameter -nostdlib -nostartfiles -nodefaultlibs -Wall -O0 -Iinc -B/usr/local/bin/i686-elf-
 all: ./bin/boot.bin ./bin/kernel.bin
-	rm -f ./bin/os.bin
-	dd if=/dev/zero of=./bin/os.bin bs=1M count=16
-	dd if=./bin/boot.bin of=./bin/os.bin conv=notrunc
+	dd if=/dev/zero of=./bin/os.bin bs=1M count=32
 	mkfs.vfat -F 16 ./bin/os.bin
+	dd if=./bin/boot.bin of=./bin/os.bin conv=notrunc
 	sudo mkdir -p /mnt/z
 	sudo mount -o loop ./bin/os.bin /mnt/z
 	sudo cp ./boot.ini ./font.psf ./open.exe ./hello.exe ./stop.exe ./librever.exe ./reboot.exe ./test.bat ./bsod.exe ./lsbin.exe /mnt/z/
