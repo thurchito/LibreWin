@@ -11,6 +11,7 @@ all: ./bin/boot.bin ./bin/kernel.bin
 	sudo cp ./boot.ini ./font.psf ./open.exe ./hello.exe ./stop.exe ./librever.exe ./reboot.exe ./test.bat ./bsod.exe ./lsbin.exe /mnt/z/
 	sudo umount /mnt/z
 	sudo rm -rf /mnt/z
+
 ./bin/kernel.bin: $(FILES)
 	i686-elf-ld -g -relocatable $(FILES) -o ./build/kernelfull.o
 	i686-elf-gcc $(FLAGS) -T ./base/txos/init/linker.ld -o ./bin/kernel.bin -ffreestanding -O0 -nostdlib ./build/kernelfull.o
