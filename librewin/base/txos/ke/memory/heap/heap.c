@@ -27,7 +27,7 @@ static int heap_validate_table(void* ptr, void* end, struct heap_table* table)
     int res = 0;
 
     size_t table_size = (size_t)(end - ptr);
-    size_t total_blocks = table_size / FREE95_HEAP_BLOCK_SIZE;
+    size_t total_blocks = table_size / LIBREWIN_HEAP_BLOCK_SIZE;
     if (table->total != total_blocks)
     {
         res = -EINVARG;
@@ -40,7 +40,7 @@ out:
 
 static bool heap_validate_alignment(void* ptr)
 {
-    return ((unsigned int)ptr % FREE95_HEAP_BLOCK_SIZE) == 0;
+    return ((unsigned int)ptr % LIBREWIN_HEAP_BLOCK_SIZE) == 0;
 }
 
 int heap_create(struct heap* heap, void* ptr, void* end, struct heap_table* table)
@@ -72,13 +72,13 @@ out:
 
 static uint32_t heap_align_value_to_upper(uint32_t val)
 {
-    if ((val % FREE95_HEAP_BLOCK_SIZE) == 0)
+    if ((val % LIBREWIN_HEAP_BLOCK_SIZE) == 0)
     {
         return val;
     }
 
-    val = (val - ( val % FREE95_HEAP_BLOCK_SIZE));
-    val += FREE95_HEAP_BLOCK_SIZE;
+    val = (val - ( val % LIBREWIN_HEAP_BLOCK_SIZE));
+    val += LIBREWIN_HEAP_BLOCK_SIZE;
     return val;
 }
 
@@ -125,7 +125,7 @@ int heap_get_start_block(struct heap* heap, uint32_t total_blocks)
 
 void* heap_block_to_address(struct heap* heap, int block)
 {
-    return heap->saddr + (block * FREE95_HEAP_BLOCK_SIZE);
+    return heap->saddr + (block * LIBREWIN_HEAP_BLOCK_SIZE);
 }
 
 void heap_mark_blocks_taken(struct heap* heap, int start_block, int total_blocks)
@@ -184,13 +184,13 @@ void heap_mark_blocks_free(struct heap* heap, int starting_block)
 
 int heap_address_to_block(struct heap* heap, void* address)
 {
-    return ((int)(address - heap->saddr)) / FREE95_HEAP_BLOCK_SIZE;
+    return ((int)(address - heap->saddr)) / LIBREWIN_HEAP_BLOCK_SIZE;
 }
 
 void* heap_malloc(struct heap* heap, size_t size)
 {
     size_t aligned_size = heap_align_value_to_upper(size);
-    uint32_t total_blocks = aligned_size / FREE95_HEAP_BLOCK_SIZE;
+    uint32_t total_blocks = aligned_size / LIBREWIN_HEAP_BLOCK_SIZE;
     return heap_malloc_blocks(heap, total_blocks);
 }
 

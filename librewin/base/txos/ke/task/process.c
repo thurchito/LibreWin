@@ -12,7 +12,7 @@
 // The current process that is running
 struct process* current_process = 0;
 
-static struct process* processes[FREE95_MAX_PROCESSES] = {};
+static struct process* processes[LIBREWIN_MAX_PROCESSES] = {};
 
 static void process_init(struct process* process)
 {
@@ -26,7 +26,7 @@ struct process* process_current()
 
 struct process* process_get(int process_id)
 {
-    if (process_id < 0 || process_id >= FREE95_MAX_PROCESSES)
+    if (process_id < 0 || process_id >= LIBREWIN_MAX_PROCESSES)
     {
         return NULL;
     }
@@ -49,7 +49,7 @@ static int process_load_data(const char* filename, struct process* process)
 int process_map_binary(struct process* process)
 {
     int res = 0;
-    paging_map_to(process->task->page_directory->directory_entry, (void*) FREE95_PROGRAM_VIRTUAL_ADDRESS, process->ptr, paging_align_address(process->ptr + process->size), PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL | PAGING_IS_WRITEABLE);
+    paging_map_to(process->task->page_directory->directory_entry, (void*) LIBREWIN_PROGRAM_VIRTUAL_ADDRESS, process->ptr, paging_align_address(process->ptr + process->size), PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL | PAGING_IS_WRITEABLE);
     return res;
 }
 
@@ -62,7 +62,7 @@ int process_map_memory(struct process* process)
 
 int process_get_free_slot()
 {
-    for (int i = 0; i < FREE95_MAX_PROCESSES; i++)
+    for (int i = 0; i < LIBREWIN_MAX_PROCESSES; i++)
     {
         if (processes[i] == 0)
             return i;
@@ -113,7 +113,7 @@ int process_load_for_slot(const char* filename, struct process** process, int pr
         goto out;
     }
 
-    program_stack_ptr = kzalloc(FREE95_USER_PROGRAM_STACK_SIZE);
+    program_stack_ptr = kzalloc(LIBREWIN_USER_PROGRAM_STACK_SIZE);
     if (!program_stack_ptr)
     {
         res = -ENOMEM;

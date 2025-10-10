@@ -27,12 +27,12 @@ struct heap_table kernel_heap_table;
 
 void kheap_init()
 {
-    int total_table_entries = FREE95_HEAP_SIZE_BYTES / FREE95_HEAP_BLOCK_SIZE;
-    kernel_heap_table.entries = (HEAP_BLOCK_TABLE_ENTRY*)(FREE95_HEAP_TABLE_ADDRESS);
+    int total_table_entries = LIBREWIN_HEAP_SIZE_BYTES / LIBREWIN_HEAP_BLOCK_SIZE;
+    kernel_heap_table.entries = (HEAP_BLOCK_TABLE_ENTRY*)(LIBREWIN_HEAP_TABLE_ADDRESS);
     kernel_heap_table.total = total_table_entries;
 
-    void* end = (void*)(FREE95_HEAP_ADDRESS + FREE95_HEAP_SIZE_BYTES);
-    int res = heap_create(&kernel_heap, (void*)(FREE95_HEAP_ADDRESS), end, &kernel_heap_table);
+    void* end = (void*)(LIBREWIN_HEAP_ADDRESS + LIBREWIN_HEAP_SIZE_BYTES);
+    int res = heap_create(&kernel_heap, (void*)(LIBREWIN_HEAP_ADDRESS), end, &kernel_heap_table);
     if (res < 0)
     {
         print("Failed to create heap\n");

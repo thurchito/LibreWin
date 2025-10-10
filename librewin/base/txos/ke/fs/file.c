@@ -26,13 +26,13 @@ Abstract:
 #include "../../init/kernel.h"
 #include "fat/fat16.h"
 
-struct filesystem* filesystems[FREE95_MAX_FILESYSTEMS];
-struct file_descriptor* file_descriptors[FREE95_MAX_FILE_DESCRIPTORS];
+struct filesystem* filesystems[LIBREWIN_MAX_FILESYSTEMS];
+struct file_descriptor* file_descriptors[LIBREWIN_MAX_FILE_DESCRIPTORS];
 
 static struct filesystem** fs_get_free_filesystem()
 {
     int i = 0;
-    for (i = 0; i < FREE95_MAX_FILESYSTEMS; i++)
+    for (i = 0; i < LIBREWIN_MAX_FILESYSTEMS; i++)
     {
         if (filesystems[i] == 0)
         {
@@ -76,7 +76,7 @@ void fs_init()
 static int file_new_descriptor(struct file_descriptor** desc_out)
 {
     int res = -ENOMEM;
-    for (int i = 0; i < FREE95_MAX_FILE_DESCRIPTORS; i++)
+    for (int i = 0; i < LIBREWIN_MAX_FILE_DESCRIPTORS; i++)
     {
         if (file_descriptors[i] == 0)
         {
@@ -95,7 +95,7 @@ static int file_new_descriptor(struct file_descriptor** desc_out)
 
 static struct file_descriptor* file_get_descriptor(int fd)
 {
-    if (fd <= 0 || fd >= FREE95_MAX_FILE_DESCRIPTORS)
+    if (fd <= 0 || fd >= LIBREWIN_MAX_FILE_DESCRIPTORS)
     {
         return 0;
     }
@@ -108,7 +108,7 @@ static struct file_descriptor* file_get_descriptor(int fd)
 struct filesystem* fs_resolve(struct disk* disk)
 {
     struct filesystem* fs = 0;
-    for (int i = 0; i < FREE95_MAX_FILESYSTEMS; i++)
+    for (int i = 0; i < LIBREWIN_MAX_FILESYSTEMS; i++)
     {
         if (filesystems[i] != 0 && filesystems[i]->resolve(disk) == 0)
         {

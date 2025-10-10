@@ -327,8 +327,8 @@ int fetchwh(const char *str, int *width, int *height)
 static struct paging_4gb_chunk* kernel_chunk = 0;
 
 struct tss tss;
-struct gdt gdt_real[FREE95_TOTAL_GDT_SEGMENTS];
-struct gdt_structured gdt_structured[FREE95_TOTAL_GDT_SEGMENTS] =
+struct gdt gdt_real[LIBREWIN_TOTAL_GDT_SEGMENTS];
+struct gdt_structured gdt_structured[LIBREWIN_TOTAL_GDT_SEGMENTS] =
 {
     {.base = 0x00, .limit = 0x00, .type = 0x00},                // NULL Segment
     {.base = 0x00, .limit = 0xffffffff, .type = 0x9a},           // Kernel code segment
@@ -875,7 +875,7 @@ void kernel_main()
     print("LibreWin is starting...\n");
 
 	memset(gdt_real, 0x00, sizeof(gdt_real));
-    gdt_structured_to_gdt(gdt_real, gdt_structured, FREE95_TOTAL_GDT_SEGMENTS);
+    gdt_structured_to_gdt(gdt_real, gdt_structured, LIBREWIN_TOTAL_GDT_SEGMENTS);
 
     gdt_load(gdt_real, sizeof(gdt_real));
 

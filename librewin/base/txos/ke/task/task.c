@@ -48,7 +48,7 @@ struct task* task_new(struct process* process)
     }
 
     res = task_init(task, process);
-    if (res != FREE95_ALL_OK)
+    if (res != LIBREWIN_ALL_OK)
     {
         goto out;
     }
@@ -127,9 +127,9 @@ int task_init(struct task* task, struct process* process)
         return -EIO;
     }
 
-    task->registers.ip = FREE95_PROGRAM_VIRTUAL_ADDRESS;
+    task->registers.ip = LIBREWIN_PROGRAM_VIRTUAL_ADDRESS;
     task->registers.ss = USER_DATA_SEGMENT;
-    task->registers.esp = FREE95_PROGRAM_VIRTUAL_STACK_ADDRESS_START;
+    task->registers.esp = LIBREWIN_PROGRAM_VIRTUAL_STACK_ADDRESS_START;
 
     task->process = process;
 

@@ -57,8 +57,8 @@ int disk_read_sector(int lba, int total, void* buf)
 void DiskInit()
 {
     memset(&disk, 0, sizeof(disk));
-    disk.type = FREE95_DISK_TYPE_REAL;
-    disk.sector_size = FREE95_SECTOR_SIZE;
+    disk.type = LIBREWIN_DISK_TYPE_REAL;
+    disk.sector_size = LIBREWIN_SECTOR_SIZE;
     disk.filesystem = fs_resolve(&disk);
     disk.id = 0;
 }

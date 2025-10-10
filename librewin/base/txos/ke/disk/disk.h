@@ -3,14 +3,14 @@
 
 #include "../fs/file.h"
 
-typedef unsigned int FREE95_DISK_TYPE;
+typedef unsigned int LIBREWIN_DISK_TYPE;
 
 // Physical hard disk
-#define FREE95_DISK_TYPE_REAL 0
+#define LIBREWIN_DISK_TYPE_REAL 0
 
 struct disk
 {
-	FREE95_DISK_TYPE type;
+	LIBREWIN_DISK_TYPE type;
 	int sector_size;
 	int id;
 	struct filesystem *filesystem;

@@ -8,7 +8,7 @@
 #define VGA_WIDTH 80
 #define VGA_HEIGHT 20
 
-#define FREE95_MAX_PATH 108
+#define LIBREWIN_MAX_PATH 108
 
 #define LOG_SUCCESS 1
 #define LOG_FAIL 0
