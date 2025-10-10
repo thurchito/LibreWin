@@ -4,12 +4,11 @@ FLAGS = -v -g -ffreestanding -falign-jumps -falign-functions -falign-labels -fal
 all: ./bin/boot.bin ./bin/kernel.bin
 	dd if=/dev/zero of=./bin/os.bin bs=1M count=32
 	mkfs.vfat -F 16 ./bin/os.bin
-	dd if=./bin/boot.bin of=./bin/os.bin conv=notrunc
+	dd if=./bin/boot.bin of=./bin/os.bin bs=1 skip=62 seek=62 conv=notrunc
 	sudo mkdir -p /mnt/z
 	sudo mount -o loop ./bin/os.bin /mnt/z
 	sudo cp ./boot.ini ./font.psf ./open.exe ./hello.exe ./stop.exe ./librever.exe ./reboot.exe ./test.bat ./bsod.exe ./lsbin.exe /mnt/z/
 	sudo umount /mnt/z
-	sudo rm -rf /mnt/z
 
 ./bin/kernel.bin: $(FILES)
 	i686-elf-ld -g -relocatable $(FILES) -o ./build/kernelfull.o
