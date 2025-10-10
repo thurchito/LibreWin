@@ -36,11 +36,11 @@ int NtOpenFile(
 
 void _start()
 {
-	char fnamebuf[] = "0:/boot.ini";
+    char fnamebuf[] = "0:/boot.ini";
 
-	PUNICODE_STRING fname = 0;
-
-	RtlCreateUnicodeStringFromAsciiz(fname, fnamebuf);
+    UNICODE_STRING fname_struct;
+    PUNICODE_STRING fname = &fname_struct;
+    RtlCreateUnicodeStringFromAsciiz(fname, fnamebuf);
 
 	POBJECT_ATTRIBUTES objAttrs;
 
