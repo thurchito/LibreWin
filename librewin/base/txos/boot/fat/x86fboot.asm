@@ -1,3 +1,4 @@
+; Compact LibreWin bootloader (FAT BPB fields sized correctly)
 ORG 0x7c00
 BITS 16
 
@@ -21,9 +22,9 @@ DriveNumber        db 0
 Reserved1          db 0
 WinNTBit           db 0x00
 Signature          db 0x29
-VolumeID           dd 0xD105
-VolumeIDString     db 'LIBREWIN BOO'  ; 11 bytes
-SystemIDString     db 'FAT16   '      ; 8 bytes
+VolumeID           dd 0x00D10500
+VolumeIDString     db 'LIBREWIN BO'   ; 11 bytes (exact)
+SystemIDString     db 'FAT16   '      ; 8 bytes (exact)
 
 start:
     cli
@@ -32,18 +33,33 @@ start:
     mov es, ax
     mov ss, ax
     mov sp, 0x7c00
-    sti
 
+    ; load GDT and enter Protected Mode
     lgdt [gdt_descriptor]
     mov eax, cr0
-    or eax, 1
+    or  eax, 1
     mov cr0, eax
-    jmp CODE_SEG:load32
+
+    ; Far jump to flush prefetch and load new CS
+    jmp 0x08:protected_entry   ; 0x08 = code selector
 
 gdt_start:
-gdt_null: dd 0,0
-gdt_code: dw 0xffff,0,0,0x9a,0xcf,0
-gdt_data: dw 0xffff,0,0,0x92,0xcf,0
+gdt_null:    dd 0,0
+
+gdt_code:    dw 0xffff
+             dw 0
+             db 0
+             db 0x9A
+             db 0xCF
+             db 0
+
+gdt_data:    dw 0xffff
+             dw 0
+             db 0
+             db 0x92
+             db 0xCF
+             db 0
+
 gdt_end:
 
 gdt_descriptor:
@@ -51,48 +67,69 @@ gdt_descriptor:
     dd gdt_start
 
 [BITS 32]
-CODE_SEG equ gdt_code - gdt_start
-DATA_SEG equ gdt_data - gdt_start
+protected_entry:
+    ; set up flat data segments and stack
+    mov ax, 0x10      ; data selector (0x10)
+    mov ds, ax
+    mov es, ax
+    mov ss, ax
+    mov esp, 0x90000
 
-load32:
-    mov eax, 1         ; sectors to read
-    mov ecx, 100       ; LBA
-    mov edi, 0x0100000 ; memory destination
+    ; Example: read 1 sector from LBA 100 into 0x00100000
+    ; (caller may change eax/ecx/edi before calling)
+    mov eax, 100      ; LBA (example)
+    mov ecx, 1        ; sectors to read
+    mov edi, 0x00100000
     call ata_lba_read
-    jmp CODE_SEG:0x0100000
+
+    ; Jump to loaded code (code selector = 0x08)
+    jmp 0x08:0x00100000
 
 ata_lba_read:
     push ebx
-    mov ebx, eax
-    shr eax, 24
-    or eax, 0xE0
-    out 0x1F6, al
+    push esi
 
+    mov ebx, eax      ; save LBA
+    mov esi, ecx      ; sectors remaining
+
+    ; send sector count
     mov al, cl
     out 0x1F2, al
 
+    ; send LBA low, mid, high bytes
     mov eax, ebx
-    out 0x1F3, al
+    out 0x1F3, al         ; LBA 0..7
     mov eax, ebx
     shr eax, 8
-    out 0x1F4, al
+    out 0x1F4, al         ; LBA 8..15
     mov eax, ebx
     shr eax, 16
-    out 0x1F5, al
+    out 0x1F5, al         ; LBA 16..23
 
+    ; send top 8 bits with 0xE0 (LBA mode + master)
+    mov eax, ebx
+    shr eax, 24
+    or al, 0xE0
+    out 0x1F6, al
+
+    ; send READ SECTORS command (0x20)
     mov al, 0x20
     out 0x1F7, al
 
-.next_sector:
-    push ecx
-.wait:
+.read_loop:
+    ; wait for DRQ
     in al, 0x1F7
     test al, 8
-    jz .wait
+    jz .read_loop
+
+    ; read 256 words (512 bytes)
     mov ecx, 256
     rep insw
-    pop ecx
-    loop .next_sector
+
+    dec esi
+    jnz .read_loop
+
+    pop esi
     pop ebx
     ret
 
