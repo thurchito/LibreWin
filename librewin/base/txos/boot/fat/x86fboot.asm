@@ -27,7 +27,7 @@ jmp short start
 nop
 
 ; FAT16 Header
-OEMIdentifier           db 'LWIN  '
+OEMIdentifier           db 'LIBREWIN'
 BytesPerSector          dw 0x200
 SectorsPerCluster       db 0x80
 ReservedSectors         dw 200
@@ -46,7 +46,7 @@ DriveNumber             db 0x80
 WinNTBit                db 0x00
 Signature               db 0x29
 VolumeID                dd 0xD105
-VolumeIDString          db 'LWIN  BOO'
+VolumeIDString          db 'LIBREWI BOO'
 SystemIDString          db 'FAT16   '
 
 start:
@@ -101,11 +101,18 @@ gdt_descriptor:
 
 [BITS 32]
 load32:
-	mov eax, 1
-	mov ecx, 100
+	mov eax, 284
+	mov ecx, 105
 	mov edi, 0x0100000
 	call ata_lba_read
 	jmp CODE_SEG:0x0100000
+	mov ax, DATA_SEG  ; 0x10 (your data descriptor)
+	mov ds, ax
+	mov es, ax
+	mov fs, ax
+	mov gs, ax
+	mov ss, ax
+	mov esp, 0x90000
 
 ; ATA Driver in Bootloader
 ata_lba_read:
