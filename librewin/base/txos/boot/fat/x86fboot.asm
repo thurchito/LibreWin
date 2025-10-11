@@ -44,7 +44,6 @@ DriveNumber         db 0
 Reserved1           db 0
 
 ; Extended BPB (DOS 4.0)
-DriveNumber             db 0x80
 WinNTBit                db 0x00
 Signature               db 0x29
 VolumeID                dd 0xD105
