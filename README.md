@@ -17,12 +17,10 @@ I'm currently working on porting all Windows 2000 system calls!
 - 32MB of Storage
 
 # Gallery
-## 0.3.0 Beta 2
-![image](https://github.com/user-attachments/assets/ca2b0490-efe6-49fa-bc39-7673d6d63337)
+## TestRelease
+![image](https://github.com/thurchito/LibreWin/blob/b987e5b90509c92422b5efa44b611cc41b8d8cf1/screenshot.png)
 ### Changelog
-- added the Native Shell in graphical mode
-- added a loader for ```.bat files```, and you can now run the provided executables in the shell
-- added the ```print.h``` library to make it easier to use ```NtDisplayString``` in apps
+- added support for new Windows NT functions
 
 # What it is
 **[LibreWin](https://thurchito.github.io/)** combines the familiar Windows environment with the reliability and transparency of open-source software. It aims to provide full compatibility with Windows applications, ensuring your favorite games and programs run seamlessly.
