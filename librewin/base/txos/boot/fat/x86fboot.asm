@@ -1,4 +1,3 @@
-; Compact LibreWin bootloader (FAT BPB fields sized correctly)
 ORG 0x7c00
 BITS 16
 
@@ -20,7 +19,6 @@ HiddenSectors      dd 0
 TotalSectors32     dd 0
 DriveNumber        db 0
 Reserved1          db 0
-WinNTBit           db 0x00
 Signature          db 0x29
 VolumeID           dd 0x00D10500
 VolumeIDString     db 'LIBREWIN BO'   ; 11 bytes (exact)
@@ -93,36 +91,41 @@ ata_lba_read:
     mov esi, ecx      ; sectors remaining
 
     ; send sector count
+    mov dx, 0x1F2
     mov al, cl
-    out 0x1F2, al
+    out dx, al
 
-    ; send LBA low, mid, high bytes
-    mov eax, ebx
-    out 0x1F3, al         ; LBA 0..7
-    mov eax, ebx
-    shr eax, 8
-    out 0x1F4, al         ; LBA 8..15
-    mov eax, ebx
-    shr eax, 16
-    out 0x1F5, al         ; LBA 16..23
+    inc dx            ; 0x1F3
+    mov al, bl
+    out dx, al
 
-    ; send top 8 bits with 0xE0 (LBA mode + master)
-    mov eax, ebx
-    shr eax, 24
+    inc dx            ; 0x1F4
+    mov al, bh
+    out dx, al
+
+    inc dx            ; 0x1F5
+    shr ebx, 16
+    mov al, bl
+    out dx, al
+
+    inc dx            ; 0x1F6
+    mov al, bh
     or al, 0xE0
-    out 0x1F6, al
+    out dx, al
 
-    ; send READ SECTORS command (0x20)
+    inc dx            ; 0x1F7
     mov al, 0x20
-    out 0x1F7, al
+    out dx, al
+
+    mov dx, 0x1F7
 
 .read_loop:
-    ; wait for DRQ
-    in al, 0x1F7
+    in al, dx
     test al, 8
     jz .read_loop
 
     ; read 256 words (512 bytes)
+    mov dx, 0x1F0
     mov ecx, 256
     rep insw
 
