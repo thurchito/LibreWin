@@ -21,8 +21,8 @@ DriveNumber        db 0
 Reserved1          db 0
 Signature          db 0x29
 VolumeID           dd 0x00D10500
-VolumeIDString     db 'LIBREWIN BO'   ; 11 bytes (exact)
-SystemIDString     db 'FAT16   '      ; 8 bytes (exact)
+VolumeIDString     db 'LIBREWIN BO'   ; 11 bytes
+SystemIDString     db 'FAT16   '      ; 8 bytes
 
 start:
     cli
@@ -32,13 +32,17 @@ start:
     mov ss, ax
     mov sp, 0x7c00
 
-    ; load GDT and enter Protected Mode
+    ; Read kernel sectors in real mode
+    mov eax, 284      ; LBA of kernel start
+    mov ecx, 105      ; Number of sectors to read
+    mov edi, 0x00100000
+    call ata_lba_read
+
+    ; Load GDT and switch to protected mode
     lgdt [gdt_descriptor]
     mov eax, cr0
     or  eax, 1
     mov cr0, eax
-
-    ; Far jump to flush prefetch and load new CS
     jmp 0x08:protected_entry   ; 0x08 = code selector
 
 gdt_start:
@@ -66,71 +70,61 @@ gdt_descriptor:
 
 [BITS 32]
 protected_entry:
-    ; set up flat data segments and stack
-    mov ax, 0x10      ; data selector (0x10)
+    mov ax, 0x10      ; data selector
     mov ds, ax
     mov es, ax
     mov ss, ax
-    mov esp, 0x90000
+    mov esp, 0x90000  ; stack
 
-    ; Example: read 1 sector from LBA 100 into 0x00100000
-    ; (caller may change eax/ecx/edi before calling)
-    mov eax, 284
-    mov ecx, 105
-    mov edi, 0x00100000
-    call ata_lba_read
-
-    ; Jump to loaded code (code selector = 0x08)
+    ; Jump to kernel (already loaded at 0x00100000)
     jmp 0x08:0x00100000
 
 ata_lba_read:
     push ebx
     push esi
 
-    mov ebx, eax      ; save LBA
-    mov esi, ecx      ; sectors remaining
+    mov ebx, eax       ; save LBA
+    mov esi, ecx       ; sectors remaining
 
+.next_sector:
     ; send sector count
     mov dx, 0x1F2
-    mov al, cl
+    mov al, sil        ; low byte of sectors (assumes <256)
     out dx, al
 
-    inc dx            ; 0x1F3
-    mov al, bl
-    out dx, al
-
-    inc dx            ; 0x1F4
-    mov al, bh
-    out dx, al
-
-    inc dx            ; 0x1F5
+    ; send LBA bytes
+    mov eax, ebx
+    mov dx, 0x1F3
+    out dx, al          ; LBA 0..7
+    mov al, ah
+    inc dx
+    out dx, al          ; LBA 8..15
     shr ebx, 16
     mov al, bl
-    out dx, al
-
-    inc dx            ; 0x1F6
+    inc dx
+    out dx, al          ; LBA 16..23
     mov al, bh
     or al, 0xE0
-    out dx, al
+    inc dx
+    out dx, al          ; LBA 24..27 + master
 
-    inc dx            ; 0x1F7
+    ; send READ SECTORS command
     mov al, 0x20
-    out dx, al
+    out 0x1F7, al
 
-    mov dx, 0x1F7
-
-.read_loop:
-    in al, dx
+.wait_drq:
+    in al, 0x1F7
     test al, 8
-    jz .read_loop
+    jz .wait_drq
 
     ; read 256 words (512 bytes)
     mov dx, 0x1F0
     mov ecx, 256
     rep insw
+    add edi, 512
 
     dec esi
-    jnz .read_loop
+    jnz .next_sector
 
     pop esi
     pop ebx
