@@ -75,8 +75,8 @@ protected_entry:
 
     ; Example: read 1 sector from LBA 100 into 0x00100000
     ; (caller may change eax/ecx/edi before calling)
-    mov eax, 100      ; LBA (example)
-    mov ecx, 1        ; sectors to read
+    mov eax, 284
+    mov ecx, 105
     mov edi, 0x00100000
     call ata_lba_read
 
