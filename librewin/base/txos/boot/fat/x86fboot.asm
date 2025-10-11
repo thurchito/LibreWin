@@ -1,172 +1,98 @@
-;++
-;
-; LibreWin 20x/TX Loader
-;
-; You may only use this code if you agree to the terms of the LibreWin Source Code License agreement (GNU GPL v3) (see LICENSE).
-; If you do not agree to the terms, do not use the code.
-;
-;
-; Module Name:
-;
-;    x86fboot.asm
-;
-; Abstract:
-;
-;    This module implements the assembly code necessary to load
-;    the 20x/TX Kernel for LibreWin.
-;
-;--
-
 ORG 0x7c00
 BITS 16
 
+jmp start
+nop
+
+; Minimal FAT16 BPB
+OEMIdentifier      db 'LIBREWIN '
+BytesPerSector     dw 512
+SectorsPerCluster  db 1
+ReservedSectors    dw 1
+NumberOfFATs       db 2
+RootEntries        dw 224
+TotalSectors16     dw 2880
+MediaDescriptor    db 0xF0
+SectorsPerFAT      dw 9
+SectorsPerTrack    dw 18
+HeadsPerCylinder   dw 2
+HiddenSectors      dd 0
+TotalSectors32     dd 0
+DriveNumber        db 0
+Reserved1          db 0
+WinNTBit           db 0x00
+Signature          db 0x29
+VolumeID           dd 0xD105
+VolumeIDString     db 'LIBREWIN BOO'
+SystemIDString     db 'FAT16   '
+
+start:
+    cli
+    xor ax, ax
+    mov ds, ax
+    mov es, ax
+    mov ss, ax
+    mov sp, 0x7c00
+    sti
+
+    lgdt [gdt_descriptor]
+    mov eax, cr0
+    or eax, 1
+    mov cr0, eax
+    jmp CODE_SEG:load32
+
+; GDT
+gdt_start:
+gdt_null: dd 0,0
+gdt_code: dw 0xffff,0,0,0x9a,0xcf,0
+gdt_data: dw 0xffff,0,0,0x92,0xcf,0
+gdt_end:
+
+gdt_descriptor: dw gdt_end - gdt_start - 1
+                dd gdt_start
+
+[BITS 32]
 CODE_SEG equ gdt_code - gdt_start
 DATA_SEG equ gdt_data - gdt_start
 
-jmp short start
-nop
-
-; FAT16 Header
-OEMIdentifier           db 'LIBREWIN  '
-BytesPerSector      dw 512
-SectorsPerCluster   db 1
-ReservedSectors     dw 1
-NumberOfFATs        db 2
-RootEntries         dw 224
-TotalSectors16      dw 2880
-MediaDescriptor     db 0xF0
-SectorsPerFAT       dw 9
-SectorsPerTrack     dw 18
-HeadsPerCylinder    dw 2
-HiddenSectors       dd 0
-TotalSectors32      dd 0
-DriveNumber         db 0
-Reserved1           db 0
-
-; Extended BPB (DOS 4.0)
-WinNTBit                db 0x00
-Signature               db 0x29
-VolumeID                dd 0xD105
-VolumeIDString          db 'LIBREWIN  BOO'
-SystemIDString          db 'FAT16   '
-
-start:
-	jmp 0:step2
-
-step2:
-	cli ; No interrupts
-	mov ax, 0x00
-	mov ds, ax
-	mov es, ax
-	mov ss, ax
-	mov sp, 0x7c00
-	sti ; Interrupts are fine now
-
-.load_protected:
-	cli ; No interrupts
-	lgdt[gdt_descriptor] ; GDT load
-	mov eax, cr0
-	or eax, 0x1
-	mov cr0, eax
-	jmp CODE_SEG:load32
-
-; Global Descriptor Table/GDT
-gdt_start:
-gdt_null:
-    dd 0x0
-    dd 0x0
-
-; offset 0x8
-gdt_code:     ; CS SHOULD POINT TO THIS
-    dw 0xffff ; Segment limit first 0-15 bits
-    dw 0      ; Base first 0-15 bits
-    db 0      ; Base 16-23 bits
-    db 0x9a   ; Access byte
-    db 11001111b ; High 4 bit flags and the low 4 bit flags
-    db 0        ; Base 24-31 bits
-
-; offset 0x10
-gdt_data:      ; DS, SS, ES, FS, GS
-    dw 0xffff ; Segment limit first 0-15 bits
-    dw 0      ; Base first 0-15 bits
-    db 0      ; Base 16-23 bits
-    db 0x92   ; Access byte
-    db 11001111b ; High 4 bit flags and the low 4 bit flags
-    db 0        ; Base 24-31 bits
-
-gdt_end:
-
-gdt_descriptor:
-    dw gdt_end - gdt_start-1
-    dd gdt_start
-
-[BITS 32]
 load32:
-	mov eax, 1
-	mov ecx, 100
-	mov edi, 0x0100000
-	call ata_lba_read
-	jmp CODE_SEG:0x0100000
+    mov eax, 1      ; sectors
+    mov ecx, 100    ; LBA
+    mov edi, 0x0100000
+    call ata_lba_read
+    jmp CODE_SEG:0x0100000
 
-; ATA Driver in Bootloader
 ata_lba_read:
-    mov ebx, eax, ; Backup the LBA
-    ; Send the highest 8 bits of the lba to hard disk controller
-    shr eax, 24
-    or eax, 0xE0 ; Select the  master drive
-    mov dx, 0x1F6
-    out dx, al
-    ; Finished sending the highest 8 bits of the lba
+    push ebx
+    mov ebx, eax
+    shr eax, 24
+    or eax, 0xE0
+    out 0x1F6, al
+    mov al, cl
+    out 0x1F2, al
+    mov eax, ebx
+    out 0x1F3, al
+    mov eax, ebx
+    shr eax, 8
+    out 0x1F4, al
+    mov eax, ebx
+    shr eax, 16
+    out 0x1F5, al
+    mov al, 0x20
+    out 0x1F7, al
 
-    ; Send the total sectors to read
-    mov eax, ecx
-    mov dx, 0x1F2
-    out dx, al
-    ; Finished sending the total sectors to read
-
-    ; Send more bits of the LBA
-    mov eax, ebx ; Restore the backup LBA
-    mov dx, 0x1F3
-    out dx, al
-    ; Finished sending more bits of the LBA
-
-    ; Send more bits of the LBA
-    mov dx, 0x1F4
-    mov eax, ebx ; Restore the backup LBA
-    shr eax, 8
-    out dx, al
-    ; Finished sending more bits of the LBA
-
-    ; Send upper 16 bits of the LBA
-    mov dx, 0x1F5
-    mov eax, ebx ; Restore the backup LBA
-    shr eax, 16
-    out dx, al
-    ; Finished sending upper 16 bits of the LBA
-
-    mov dx, 0x1f7
-    mov al, 0x20
-    out dx, al
-
-    ; Read all sectors into memory
 .next_sector:
-    push ecx
+    push ecx
+.wait:
+    in al, 0x1F7
+    test al, 8
+    jz .wait
+    mov ecx, 256
+    rep insw
+    pop ecx
+    loop .next_sector
+    pop ebx
+    ret
 
-; Checking if we need to read
-.try_again:
-    mov dx, 0x1f7
-    in al, dx
-    test al, 8
-    jz .try_again
-
-; We need to read 256 words at a time
-    mov ecx, 256
-    mov dx, 0x1F0
-    rep insw
-    pop ecx
-    loop .next_sector
-    ; End of reading sectors into memory
-    ret
-
-times 510-($ - $$) db 0
-dw 0xAA55 ; Signature
+times 510-($-$$) db 0
+dw 0xAA55
