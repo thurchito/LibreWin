@@ -4,7 +4,6 @@ FLAGS = -v -g -ffreestanding -falign-jumps -falign-functions -falign-labels -fal
 all: ./bin/boot.bin ./bin/kernel.bin
 	dd if=/dev/zero of=./bin/os.bin bs=1M count=32
 	mkfs.vfat -F 16 ./bin/os.bin
-	dd if=./bin/os.bin of=./bin/bpb.bin bs=1 count=62
 	nasm -f bin ./base/txos/boot/fat/x86fboot.asm -o ./bin/bootcode.bin
 	dd if=./bin/bootcode.bin of=./bin/os.bin bs=1 seek=62 conv=notrunc
 	printf '\x55\xAA' | dd of=./bin/os.bin bs=1 seek=510 count=2 conv=notrunc
