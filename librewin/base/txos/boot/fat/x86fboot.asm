@@ -4,8 +4,7 @@ BITS 16
 jmp start
 nop
 
-; Minimal FAT16 BPB
-OEMIdentifier      db 'LIBREWIN '
+OEMIdentifier      db 'LIBREWIN'      ; 8 bytes
 BytesPerSector     dw 512
 SectorsPerCluster  db 1
 ReservedSectors    dw 1
@@ -23,8 +22,8 @@ Reserved1          db 0
 WinNTBit           db 0x00
 Signature          db 0x29
 VolumeID           dd 0xD105
-VolumeIDString     db 'LIBREWIN BOO'
-SystemIDString     db 'FAT16   '
+VolumeIDString     db 'LIBREWIN BOO'  ; 11 bytes
+SystemIDString     db 'FAT16   '      ; 8 bytes
 
 start:
     cli
@@ -41,24 +40,24 @@ start:
     mov cr0, eax
     jmp CODE_SEG:load32
 
-; GDT
 gdt_start:
 gdt_null: dd 0,0
 gdt_code: dw 0xffff,0,0,0x9a,0xcf,0
 gdt_data: dw 0xffff,0,0,0x92,0xcf,0
 gdt_end:
 
-gdt_descriptor: dw gdt_end - gdt_start - 1
-                dd gdt_start
+gdt_descriptor:
+    dw gdt_end - gdt_start - 1
+    dd gdt_start
 
 [BITS 32]
 CODE_SEG equ gdt_code - gdt_start
 DATA_SEG equ gdt_data - gdt_start
 
 load32:
-    mov eax, 1      ; sectors
-    mov ecx, 100    ; LBA
-    mov edi, 0x0100000
+    mov eax, 1         ; sectors to read
+    mov ecx, 100       ; LBA
+    mov edi, 0x0100000 ; memory destination
     call ata_lba_read
     jmp CODE_SEG:0x0100000
 
@@ -68,8 +67,10 @@ ata_lba_read:
     shr eax, 24
     or eax, 0xE0
     out 0x1F6, al
+
     mov al, cl
     out 0x1F2, al
+
     mov eax, ebx
     out 0x1F3, al
     mov eax, ebx
@@ -78,6 +79,7 @@ ata_lba_read:
     mov eax, ebx
     shr eax, 16
     out 0x1F5, al
+
     mov al, 0x20
     out 0x1F7, al
 
