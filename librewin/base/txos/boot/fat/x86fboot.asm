@@ -28,18 +28,20 @@ nop
 
 ; FAT16 Header
 OEMIdentifier           db 'LIBREWIN  '
-BytesPerSector          dw 0x200
-SectorsPerCluster       db 0x80
-ReservedSectors         dw 200
-FATCopies               db 0x02
-RootDirEntries          dw 0x40
-NumSectors              dw 0x00
-MediaType               db 0xF8
-SectorsPerFat           dw 0x100
-SectorsPerTrack         dw 0x20
-NumberOfHeads           dw 0x40
-HiddenSectors           dd 0x00
-SectorsBig              dd 0x773594
+BytesPerSector      dw 512
+SectorsPerCluster   db 1
+ReservedSectors     dw 1
+NumberOfFATs        db 2
+RootEntries         dw 224
+TotalSectors16      dw 2880
+MediaDescriptor     db 0xF0
+SectorsPerFAT       dw 9
+SectorsPerTrack     dw 18
+HeadsPerCylinder    dw 2
+HiddenSectors       dd 0
+TotalSectors32      dd 0
+DriveNumber         db 0
+Reserved1           db 0
 
 ; Extended BPB (DOS 4.0)
 DriveNumber             db 0x80
