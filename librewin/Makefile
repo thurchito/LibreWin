@@ -4,13 +4,20 @@ FLAGS = -v -g -ffreestanding -falign-jumps -falign-functions -falign-labels -fal
 all: ./bin/boot.bin ./bin/kernel.bin
 	dd if=/dev/zero of=./bin/os.bin bs=1M count=32
 	mkfs.vfat -F 16 ./bin/os.bin
+	dd if=./bin/os.bin of=./bin/bpb.bin bs=1 count=62
 	nasm -f bin ./base/txos/boot/fat/x86fboot.asm -o ./bin/bootcode.bin
-	dd if=./bin/bootcode.bin of=./bin/os.bin bs=1 seek=62 conv=notrunc
-	printf '\x55\xAA' | dd of=./bin/os.bin bs=1 seek=510 count=2 conv=notrunc
+	# Patch the real BPB into bootcode.bin (overwriting placeholders from byte 0 to 61)
+	dd if=./bin/bpb.bin of=./bin/bootcode.bin bs=1 count=62 conv=notrunc
+	# Overwrite the full boot sector in os.bin
+	dd if=./bin/bootcode.bin of=./bin/os.bin bs=512 count=1 conv=notrunc
+	# Remove the separate signature printf, as it should now be included in bootcode.bin
 	hexdump -C -n 512 ./bin/os.bin | sed -n '1,20p'
 	sudo mkdir -p /mnt/z
 	sudo mount -o loop ./bin/os.bin /mnt/z && echo "mount OK" || dmesg | tail -n 20
 	sudo cp ./boot.ini ./font.psf ./open.exe ./hello.exe ./stop.exe ./librever.exe ./reboot.exe ./test.bat ./bsod.exe ./lsbin.exe /mnt/z/
+	# Add copies for the dependencies if they're meant for the image (e.g., kernel and any second-stage loader)
+	sudo cp ./bin/kernel.bin /mnt/z/  # Assuming this is your kernel file
+	sudo cp ./bin/boot.bin /mnt/z/    # If this is a second-stage bootloader or similar
 	sudo umount /mnt/z
 
 ./bin/kernel.bin: $(FILES)
