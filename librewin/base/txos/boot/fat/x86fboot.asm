@@ -68,7 +68,6 @@ gdt_descriptor:
     dw gdt_end - gdt_start - 1
     dd gdt_start
 
-[BITS 32]
 protected_entry:
     mov ax, 0x10      ; data selector
     mov ds, ax
