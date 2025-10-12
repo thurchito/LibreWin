@@ -25,6 +25,7 @@ Abstract:
 #define SYS_NtAccessCheckAndAuditAlarm 0x0002
 #define SYS_NtAccessCheckByType 0x0003
 #define SYS_NtAccessCheckByTypeAndAuditAlarm 0x0004
+#define SYS_NtAccessCheckByTypeResultList 0x0005
 
 typedef long NTSTATUS;
 #ifndef STATUS_SUCCESS
@@ -524,14 +525,68 @@ NTSTATUS NTAPI NtAccessCheckByTypeAndAuditAlarm(
         : "memory", "cc"
     );
 #else
-    // x64 implementation (similar to above; adapt for 16 args)
-    // First 4 in rcx/rdx/r8/r9, move rcx to r10, push remaining in reverse after shadow space
-    // This will require more pushes; test carefully
-    status = STATUS_ACCESS_DENIED;  // Placeholder
+	status = STATUS_ACCESS_DENIED;
 #endif
 
     return status;
 }
+
+#if defined(__i386__)
+NTSTATUS NTAPI NtAccessCheckByTypeResultList(
+    PSECURITY_DESCRIPTOR SecurityDescriptor,
+    PSID PrincipalSelfSid,
+    HANDLE ClientToken,
+    ACCESS_MASK DesiredAccess,
+    POBJECT_TYPE_LIST TypeList,
+    ULONG TypeListLength,
+    PGENERIC_MAPPING GenericMapping,
+    PPRIVILEGE_SET Privileges,
+    PULONG PrivilegeSetLength,
+    PULONG GrantedAccessList,
+    PBOOLEAN AccessStatusList
+) {
+    NTSTATUS status;
+
+    /* Push arguments (reverse order) onto the stack and invoke int 0x2e.
+       Count them carefully. Here we have 11 args -> 11 * 4 = 44 bytes to clean. */
+
+    asm volatile (
+        /* push in reverse order */
+        "push %[asl]\n\t"        /* AccessStatusList */
+        "push %[gal]\n\t"        /* GrantedAccessList */
+        "push %[psl]\n\t"        /* PrivilegeSetLength */
+        "push %[priv]\n\t"       /* Privileges */
+        "push %[gmap]\n\t"       /* GenericMapping */
+        "push %[tlen]\n\t"       /* TypeListLength */
+        "push %[tlist]\n\t"      /* TypeList */
+        "push %[daccess]\n\t"    /* DesiredAccess */
+        "push %[ctoken]\n\t"     /* ClientToken */
+        "push %[psid]\n\t"       /* PrincipalSelfSid */
+        "push %[sd]\n\t"         /* SecurityDescriptor */
+        "mov eax, %[scnum]\n\t"  /* syscall number */
+        "int $0x2e\n\t"
+        "add $44, %%esp\n\t"     /* cleanup 11 * 4 */
+        "mov %[out], eax\n\t"
+        : [out] "=r"(status)
+        : /* inputs */
+          [scnum] "i"(SYS_NtAccessCheckByTypeResultList),
+          [sd] "r"(SecurityDescriptor),
+          [psid] "r"(PrincipalSelfSid),
+          [ctoken] "r"(ClientToken),
+          [daccess] "r"(DesiredAccess),
+          [tlist] "r"(TypeList),
+          [tlen] "r"(TypeListLength),
+          [gmap] "r"(GenericMapping),
+          [priv] "r"(Privileges),
+          [psl] "r"(PrivilegeSetLength),
+          [gal] "r"(GrantedAccessList),
+          [asl] "r"(AccessStatusList)
+        : "eax", "memory"
+    );
+
+    return status;
+}
+#endif
 
 int NtDisplayString(PUNICODE_STRING String);
 
